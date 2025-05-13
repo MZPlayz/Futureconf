@@ -4,16 +4,16 @@
 
 @layer base {
   :root {
-    --background: 240 5% 11%; /* #1A1A1D - Dark Desaturated Blue/Grey */
+    --background: 240 5% 9%; /* #1A1A1D - Dark Desaturated Blue/Grey */
     --foreground: 240 5% 95%; /* Very Light Grey/Almost White */
 
-    --card: 240 5% 14%; /* Slightly Lighter Dark Blue/Grey for Cards */
+    --card: 240 5% 12%; /* Slightly Lighter Dark Blue/Grey for Cards */
     --card-foreground: 240 5% 95%; /* Very Light Grey for card text */
 
-    --popover: 240 5% 9%; /* Darker Popover Background */
+    --popover: 240 5% 7%; /* Darker Popover Background */
     --popover-foreground: 240 5% 95%; /* Very Light Grey for popover text */
 
-    --primary: 33 100% 65%; /* Light Orange */
+    --primary: 28 100% 49%; /* Orange #F97300 */
     --primary-foreground: 33 30% 10%; /* Dark brown for primary text */
 
     --secondary: 240 4% 25%; /* Muted Desaturated Blue/Grey */
@@ -28,26 +28,26 @@
     --destructive: 0 70% 55%; /* Brighter red for destructive actions */
     --destructive-foreground: 0 0% 98%; /* Light text for destructive */
 
-    --border: 240 5% 18%; /* Slightly lighter grey-blue border */
-    --input: 240 5% 18%; /* Input background, same as border or card */
-    --ring: 33 100% 70%; /* Light Orange ring, slightly brighter than primary */
+    --border: 240 5% 15%; /* Slightly lighter grey-blue border */
+    --input: 240 5% 15%; /* Input background, same as border or card */
+    --ring: 28 100% 54%; /* Orange ring, slightly brighter than primary */
     
-    --chart-1: 33 100% 70%; /* Light Orange shades for charts */
-    --chart-2: 33 95% 65%;
-    --chart-3: 33 90% 60%;
-    --chart-4: 33 85% 55%;
-    --chart-5: 33 80% 50%;
+    --chart-1: 28 100% 70%; /* Orange shades for charts */
+    --chart-2: 28 95% 65%;
+    --chart-3: 28 90% 60%;
+    --chart-4: 28 85% 55%;
+    --chart-5: 28 80% 50%;
     --radius: 0.5rem;
 
     /* Sidebar variables - Dark Theme */
-    --sidebar-background: 240 5% 10%; /* Slightly darker than main bg or similar to popover */
+    --sidebar-background: 240 5% 8%; /* Slightly darker than main bg or similar to popover */
     --sidebar-foreground: 240 5% 90%; /* Light cool gray for sidebar text */
-    --sidebar-primary: 33 100% 65%; /* Light Orange for sidebar primary elements */
+    --sidebar-primary: 28 100% 49%; /* Orange #F97300 for sidebar primary elements */
     --sidebar-primary-foreground: 33 30% 10%; /* Dark brown for sidebar primary text */
-    --sidebar-accent: 240 5% 15%; /* Subtle dark accent for sidebar */
-    --sidebar-accent-foreground: 33 100% 65%; /* Primary (Light Orange) for text on sidebar accent hover */
-    --sidebar-border: 240 5% 17%; /* Softer border for dark sidebar */
-    --sidebar-ring: 33 100% 70%; /* Light Orange ring for dark sidebar */
+    --sidebar-accent: 240 5% 13%; /* Subtle dark accent for sidebar */
+    --sidebar-accent-foreground: 28 100% 49%; /* Primary (Orange #F97300) for text on sidebar accent hover */
+    --sidebar-border: 240 5% 14%; /* Softer border for dark sidebar */
+    --sidebar-ring: 28 100% 54%; /* Orange ring for dark sidebar */
   }
 }
 
