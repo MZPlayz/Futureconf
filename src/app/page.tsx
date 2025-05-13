@@ -8,7 +8,10 @@ import type { ChatMessage, Participant } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, RadioTower } from 'lucide-react';
+import { AlertTriangle, RadioTower, Maximize, Users, MessageSquare } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
 
 const initialParticipants: Participant[] = [
   { id: 'p1', name: 'Alice', avatar: 'https://picsum.photos/seed/alice-conf/200/200', isHost: true, isSpeaking: false, dataAiHint: 'woman smiling', isLocal: false },
@@ -45,6 +48,28 @@ export default function FutureConfPage() {
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   const { toast } = useToast();
+  const [currentTime, setCurrentTime] = useState('');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+      setIsFullScreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullScreen(false);
+      }
+    }
+  };
+
 
   // Request camera permission on mount
   useEffect(() => {
@@ -81,10 +106,20 @@ export default function FutureConfPage() {
 
     getCameraPermission();
 
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+
     return () => { 
       isMounted = false;
-      localCameraStream?.getTracks().forEach(track => track.stop());
-      localScreenStream?.getTracks().forEach(track => track.stop());
+      if (localCameraStream) {
+        localCameraStream.getTracks().forEach(track => track.stop());
+      }
+      if (localScreenStream) {
+        localScreenStream.getTracks().forEach(track => track.stop());
+      }
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toast]);
@@ -175,12 +210,7 @@ export default function FutureConfPage() {
     } else { 
         localCameraStream?.getVideoTracks().forEach(track => {
           track.enabled = false;
-          // Optionally stop the track if you want to fully release the camera
-          // track.stop(); 
         });
-        // If stopping tracks, you might want to set localCameraStream to null
-        // if all video tracks are stopped and you intend to re-request permissions next time.
-        // However, for toggling, just disabling is usually sufficient.
     }
     setIsVideoEnabled(newIsVideoEnabled);
     setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: newIsVideoEnabled} : p));
@@ -209,7 +239,7 @@ export default function FutureConfPage() {
               setLocalScreenStream(stream);
               setIsScreenSharing(true);
               setScreenSharingParticipantId(youParticipant.id);
-              if (isVideoEnabled && localCameraStream) { 
+              if (isVideoEnabled && localCameraStream) { // If camera was on, turn it off for screen share
                 localCameraStream.getVideoTracks().forEach(track => track.enabled = false);
               }
               setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: true} : p));
@@ -226,7 +256,7 @@ export default function FutureConfPage() {
         setLocalScreenStream(null);
         setIsScreenSharing(false);
         setScreenSharingParticipantId(null);
-        if (isVideoEnabled && localCameraStream) { 
+        if (isVideoEnabled && localCameraStream) { // If camera was on (and should be after screen share), turn it back on
            localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
         }
         setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: false} : p));
@@ -240,19 +270,20 @@ export default function FutureConfPage() {
     setLocalCameraStream(null);
     setLocalScreenStream(null);
     toast({ title: 'Call Ended', description: 'You have left the meeting.' });
+    // Reset states to initial or off states
     setMessages([]);
-    // Reset participants to initial state but ensure local user's media is off
     setParticipants(initialParticipants.map(p => {
       const baseParticipant = {...p, mediaStream: null, isVideoEnabled: false, isMuted: false, isScreenSharing: false};
       if (p.isLocal) {
-        return {...baseParticipant, isVideoEnabled: false, isMuted: true}; // Ensure local video/audio is off
+        return {...baseParticipant, isVideoEnabled: false, isMuted: true}; // Local user video off and muted
       }
       return baseParticipant;
     }));
     setIsVideoEnabled(false);
-    setIsMuted(true); // Mute microphone by default after ending call
+    setIsMuted(true); // Mute self
     setIsScreenSharing(false);
-    setHasCameraPermission(null); // Reset permission state, might re-trigger on next join attempt
+    setHasCameraPermission(null); // Reset permission status to re-trigger on next "join"
+    // Potentially navigate away or show a "call ended" screen
   };
 
   const processedParticipants = participants.map(p => {
@@ -268,37 +299,51 @@ export default function FutureConfPage() {
         
         return {
             ...p,
-            isMuted: isMuted,
-            isVideoEnabled: isCurrentlyScreenSharing ? false : isVideoEnabled, 
+            isMuted: isMuted, // Local participant's mute status is directly from isMuted state
+            isVideoEnabled: isCurrentlyScreenSharing ? false : isVideoEnabled, // Video is off if screen sharing, otherwise from isVideoEnabled
             mediaStream: mediaStreamToUse,
             isScreenSharing: isCurrentlyScreenSharing,
         };
     }
-    // Example: Simulate remote participant video status
-    if(p.id === 'p1') return {...p, isVideoEnabled: true, mediaStream: null} // Alice has video on (simulated)
-    if(p.id === 'p3') return {...p, isVideoEnabled: false, mediaStream: null} // Bob has video off (simulated)
-    return {...p, mediaStream: null}; // Default remote participants with no active stream for this example
+    // Simulate video/audio for remote participants if not provided
+    if(p.id === 'p1') return {...p, isVideoEnabled: true, mediaStream: null} // Alice with video
+    if(p.id === 'p3') return {...p, isVideoEnabled: false, mediaStream: null} // Bob without video
+    return {...p, mediaStream: null}; // Others default
   });
 
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden antialiased">
       <main className="flex-1 flex flex-col relative">
-        <header className="p-4 border-b border-border flex-shrink-0 bg-gradient-to-r from-primary/10 via-card to-card shadow-lg flex items-center space-x-4">
-          <RadioTower className="w-10 h-10 text-primary animate-pulse" />
-          <div>
-            <h1 className="text-4xl font-bold text-primary tracking-tight">FutureConf</h1>
-            <p className="text-xs text-muted-foreground">Next Generation Video Conferencing</p>
+      <header className="p-3 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <RadioTower className="w-5 h-5 text-primary" />
+            <h1 className="text-lg font-medium text-foreground">FutureConf</h1>
+          </div>
+          <div className="flex items-center space-x-3 text-xs text-muted-foreground">
+            <span>{currentTime}</span>
+            <TooltipProvider delayDuration={100}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-7 h-7" onClick={toggleFullScreen}>
+                    <Maximize className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </header>
         
         {hasCameraPermission === false && (
-          <div className="absolute top-24 left-1/2 -translate-x-1/2 z-10 p-4 w-full max-w-md">
-              <Alert variant="destructive">
+          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 p-4 w-full max-w-md">
+              <Alert variant="destructive" className="rounded-lg shadow-md">
                   <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Camera/Microphone Access Denied</AlertTitle>
+                  <AlertTitle>Camera & Mic Access Denied</AlertTitle>
                   <AlertDescription>
-                      FutureConf needs camera and microphone access to function fully. Please enable permissions in your browser settings and refresh the page.
+                      FutureConf needs camera and microphone access. Please enable permissions and refresh.
                   </AlertDescription>
               </Alert>
           </div>
@@ -322,7 +367,7 @@ export default function FutureConfPage() {
         />
       </main>
       {isChatPanelOpen && (
-        <div className="w-full md:max-w-sm md:min-w-[320px] h-full flex flex-col">
+        <div className="w-full md:w-[320px] h-full flex flex-col border-l border-border bg-card/50 backdrop-blur-sm">
            <ChatPanel
             messages={messages}
             smartReplies={smartReplySuggestions}
@@ -331,6 +376,7 @@ export default function FutureConfPage() {
             onSendMessage={handleSendMessage}
             onSmartReplyClick={handleSmartReplyClick}
             setCurrentMessage={setCurrentMessage}
+            participantCount={participants.length}
           />
         </div>
       )}

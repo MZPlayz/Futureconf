@@ -37,20 +37,20 @@ export function ConferenceControls({
   onChatToggle,
   hasCameraPermission,
 }: ConferenceControlsProps) {
-  const controlButtonClass = "rounded-full w-12 h-12 p-3 transition-all duration-200 ease-in-out transform hover:scale-110";
-  const activeControlButtonClass = "bg-primary/20 text-primary";
+  const controlButtonClass = "rounded-full w-11 h-11 p-2.5 transition-colors duration-150 ease-in-out";
+  const activeControlButtonClass = "bg-primary/20 text-primary hover:bg-primary/30";
   const permissionDenied = hasCameraPermission === false;
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="flex justify-center items-center space-x-3 md:space-x-4 p-4 bg-background border-t border-border shadow-md">
+    <TooltipProvider delayDuration={100}>
+      <div className="flex justify-center items-center space-x-2 md:space-x-3 p-3 bg-card border-t border-border">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant={isMuted ? "destructive" : "outline"}
               size="icon"
               onClick={onMuteToggle}
-              className={`${controlButtonClass} ${isMuted ? 'bg-destructive/80 hover:bg-destructive text-white' : 'hover:bg-muted'}`}
+              className={`${controlButtonClass} ${isMuted ? 'bg-destructive/80 hover:bg-destructive text-destructive-foreground' : 'hover:bg-muted'}`}
               aria-label={isMuted ? "Unmute" : "Mute"}
               disabled={permissionDenied}
             >
@@ -58,7 +58,7 @@ export function ConferenceControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{permissionDenied ? "Mic disabled (no permission)" : (isMuted ? "Unmute" : "Mute")}</p>
+            <p>{permissionDenied ? "Mic disabled" : (isMuted ? "Unmute" : "Mute")}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -68,7 +68,7 @@ export function ConferenceControls({
               variant={!isVideoEnabled ? "destructive" : "outline"}
               size="icon"
               onClick={onVideoToggle}
-              className={`${controlButtonClass} ${!isVideoEnabled ? 'bg-destructive/80 hover:bg-destructive text-white' : 'hover:bg-muted'}`}
+              className={`${controlButtonClass} ${!isVideoEnabled ? 'bg-destructive/80 hover:bg-destructive text-destructive-foreground' : 'hover:bg-muted'}`}
               aria-label={isVideoEnabled ? "Stop Video" : "Start Video"}
               disabled={permissionDenied}
             >
@@ -76,7 +76,7 @@ export function ConferenceControls({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{permissionDenied ? "Video disabled (no permission)" : (isVideoEnabled ? "Stop Video" : "Start Video")}</p>
+            <p>{permissionDenied ? "Video disabled" : (isVideoEnabled ? "Stop Video" : "Start Video")}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -120,7 +120,7 @@ export function ConferenceControls({
               variant="destructive"
               size="icon"
               onClick={onEndCall}
-              className={`${controlButtonClass} bg-red-500 hover:bg-red-600 text-white`}
+              className={`${controlButtonClass} bg-red-600 hover:bg-red-700 text-white`}
               aria-label="End Call"
             >
               <PhoneOff className="w-5 h-5" />

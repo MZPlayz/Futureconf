@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface SmartRepliesProps {
   replies: string[];
@@ -11,14 +12,14 @@ interface SmartRepliesProps {
 export function SmartReplies({ replies, onReplyClick, isLoading, className }: SmartRepliesProps) {
   if (isLoading) {
     return (
-      <div className={`p-2 ${className}`}>
-        <div className="flex items-center text-sm text-muted-foreground mb-2">
-          <Sparkles className="w-4 h-4 mr-2 text-primary" />
+      <div className={cn("p-2", className)}>
+        <div className="flex items-center text-xs text-muted-foreground mb-1.5">
+          <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
           <span>Generating replies...</span>
         </div>
-        <div className="flex space-x-2 overflow-x-auto pb-2">
+        <div className="flex space-x-2 overflow-x-auto pb-1">
           {[1, 2, 3].map((i) => (
-            <Button key={i} variant="outline" size="sm" disabled className="bg-muted animate-pulse h-8 w-24 rounded-full"></Button>
+            <Button key={i} variant="outline" size="sm" disabled className="bg-muted/50 animate-pulse h-7 text-xs px-2.5 rounded-full"></Button>
           ))}
         </div>
       </div>
@@ -30,19 +31,19 @@ export function SmartReplies({ replies, onReplyClick, isLoading, className }: Sm
   }
 
   return (
-    <div className={`p-2 ${className}`}>
-      <div className="flex items-center text-sm text-muted-foreground mb-2">
-        <Sparkles className="w-4 h-4 mr-2 text-primary" />
-        <span>Smart Replies</span>
+    <div className={cn("p-2", className)}>
+      <div className="flex items-center text-xs text-muted-foreground mb-1.5">
+        <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
+        <span>Suggestions</span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {replies.map((reply, index) => (
           <Button
             key={index}
             variant="outline"
             size="sm"
             onClick={() => onReplyClick(reply)}
-            className="rounded-full shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
+            className="rounded-full text-xs px-2.5 h-7 shadow-none hover:bg-accent hover:text-accent-foreground transition-colors duration-150"
           >
             {reply}
           </Button>

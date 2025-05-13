@@ -23,21 +23,22 @@ export function ChatPanel({
   setCurrentMessage,
 }: ChatPanelProps) {
   return (
-    <aside className="w-full md:w-96 bg-card border-l border-border flex flex-col h-full shadow-xl">
-      <header className="p-4 border-b border-border">
-        <h2 className="text-xl font-semibold text-primary">Chat</h2>
+    <aside className="w-full bg-card flex flex-col h-full">
+      <header className="p-3 border-b border-border">
+        <h2 className="text-lg font-medium text-foreground">Chat</h2>
       </header>
       <MessageList messages={messages} className="flex-1" />
       <SmartReplies 
         replies={smartReplies} 
         onReplyClick={onSmartReplyClick} 
         isLoading={isSmartRepliesLoading}
-        className="border-t border-border" 
+        className="border-t border-border p-2" 
       />
       <MessageInput 
         onSendMessage={onSendMessage}
         currentMessage={currentMessage}
         setCurrentMessage={setCurrentMessage}
+        className="p-2 border-t border-border bg-card"
       />
     </aside>
   );
