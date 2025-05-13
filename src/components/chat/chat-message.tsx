@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { User2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 interface ChatMessageProps {
   message: Message;
@@ -10,6 +11,11 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const { sender, text, timestamp, isOwn, avatar } = message;
+  const [formattedTimestamp, setFormattedTimestamp] = useState<string>('');
+
+  useEffect(() => {
+    setFormattedTimestamp(format(new Date(timestamp), "p"));
+  }, [timestamp]);
 
   return (
     <div
@@ -46,7 +52,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             isOwn ? "text-right" : "text-left"
           )}
         >
-          {format(new Date(timestamp), "p")}
+          {formattedTimestamp || "..."}
         </p>
       </div>
       {isOwn && (
