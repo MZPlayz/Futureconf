@@ -21,7 +21,7 @@ export function SmartReplies({ replies, onReplyClick, isLoading, className }: Sm
         </div>
         <div className="flex space-x-1.5 overflow-x-auto pb-0.5"> {/* Reduced space and padding */}
           {[1, 2, 3].map((i) => (
-            <Button key={i} variant="outline" size="sm" disabled className="bg-muted/50 animate-pulse h-6 text-[11px] px-2 rounded-full"></Button> {/* Reduced height, font, padding */}
+            <Button key={i} variant="outline" size="sm" disabled className="bg-muted/50 animate-pulse h-6 text-[11px] px-2 rounded-full" />
           ))}
         </div>
       </div>
@@ -54,4 +54,3 @@ export function SmartReplies({ replies, onReplyClick, isLoading, className }: Sm
     </div>
   );
 }
-
