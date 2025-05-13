@@ -16,7 +16,7 @@ interface GridBackgroundProps {
 const GridBackground: React.FC<GridBackgroundProps> = ({
   children,
   className,
-  gridColor = 'hsl(var(--border) / 0.15)', // Increased alpha from 0.08 to 0.15 for more visibility
+  gridColor = 'hsl(var(--border) / 0.2)', // Further increased alpha for more visibility
   glowColor = 'hsl(var(--primary) / 0.1)', 
   glowSize = '500px',
   gridSize = '30px', 
@@ -104,3 +104,4 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
 };
 
 export default GridBackground;
+
