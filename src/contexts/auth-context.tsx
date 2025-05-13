@@ -55,12 +55,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        // Supabase handles sending confirmation email if enabled in project settings.
+        // options: {
+        //   emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
+        // }
       });
       if (signUpError) throw signUpError;
-      // Supabase sends a confirmation email by default. 
-      // The user object might be in data.user, but session will be null until confirmation.
-      toast({ title: 'Account Created', description: 'Please check your email to confirm your account.' });
-      return data.user; // User might not be active yet, onAuthStateChange will update state.
+      
+      // Supabase sends a confirmation email by default if enabled in your Supabase project settings.
+      // The user object (data.user) is returned immediately, but the session will be null
+      // until the email is confirmed. onAuthStateChange will update the session eventually.
+      toast({ 
+        title: 'Account Created', 
+        description: 'Please check your email to verify your account before logging in.' 
+      });
+      return data.user; // User object is returned, but email_confirmed_at might be null.
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Sign Up Error', description: (err as SupabaseAuthError).message });
@@ -78,13 +87,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email,
         password,
       });
-      if (signInError) throw signInError;
+      if (signInError) {
+        // Check if the error is due to unconfirmed email
+        if (signInError.message === 'Email not confirmed') {
+           toast({ variant: 'destructive', title: 'Sign In Error', description: 'Please verify your email address before logging in. Check your inbox for a verification link.' });
+        } else {
+          toast({ variant: 'destructive', title: 'Sign In Error', description: signInError.message });
+        }
+        throw signInError;
+      }
       // onAuthStateChange will handle setting user and session
       toast({ title: 'Signed In', description: 'Successfully signed in!' });
       return data.user;
     } catch (err) {
       setError(err as SupabaseAuthError);
-      toast({ variant: 'destructive', title: 'Sign In Error', description: (err as SupabaseAuthError).message });
+      // Toast is already handled for specific errors or in the if(signInError) block
+      if ((err as SupabaseAuthError).message !== 'Email not confirmed' && !(err as SupabaseAuthError).message.includes('Invalid login credentials')) {
+         // Avoid double-toasting for already handled specific errors
+      } else if ((err as SupabaseAuthError).message.includes('Invalid login credentials')) {
+        toast({ variant: 'destructive', title: 'Sign In Error', description: 'Invalid login credentials.' });
+      }
       return null;
     } finally {
       setLoading(false);
@@ -98,19 +120,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
         },
       });
       if (oauthError) throw oauthError;
       // User will be redirected. onAuthStateChange will pick up the session on return.
-      // Toast for success can be shown on redirect page or after session is confirmed by onAuthStateChange
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as SupabaseAuthError).message });
     } finally {
-      // setLoading might not be necessary here as page redirects
-      // If no redirect happens due to error, then false.
-      // setLoading(false); // This depends on flow, if error occurs before redirect.
+      // setLoading(false) might not always be reached if redirect is successful.
+      // It's set to false by onAuthStateChange listener.
     }
   };
 
