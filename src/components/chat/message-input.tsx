@@ -1,3 +1,4 @@
+
 'use client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,17 +36,19 @@ export function MessageInput({ onSendMessage, currentMessage, setCurrentMessage,
         onChange={(e) => setCurrentMessage(e.target.value)}
         onKeyPress={handleKeyPress}
         placeholder="Type a message..."
-        className="flex-1 resize-none rounded-md shadow-sm focus:ring-primary focus:border-primary bg-background text-sm py-1.5 px-2.5" // Adjusted padding & text size
+        className="flex-1 resize-none rounded-md shadow-sm focus:ring-primary focus:border-primary bg-background text-sm py-1.5 px-2.5"
         rows={1}
         disabled={disabled}
       />
+      {/* Adjusted padding & text size - Comment moved or implicit */}
       <Button 
         onClick={handleSubmit} 
         size="icon" 
-        className="rounded-md h-auto aspect-square p-2" // Adjusted padding & rounded
+        className="rounded-md h-auto aspect-square p-2" 
         disabled={disabled || currentMessage.trim() === ''}
         aria-label="Send Message"
       >
+        {/* Adjusted padding & rounded - Comment moved or implicit */}
         <Send className="w-4 h-4" /> {/* Reduced icon size */}
       </Button>
     </div>
