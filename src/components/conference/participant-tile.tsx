@@ -1,4 +1,6 @@
 
+'use client';
+
 import type { Participant } from '@/types';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
@@ -60,7 +62,7 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
           <Image
             src={avatar || `https://picsum.photos/seed/${name}/400/300`}
             alt={name}
-            layout="fill"
+            fill // Changed from layout="fill" to fill for Next 13+ Image component
             objectFit="cover"
             data-ai-hint={dataAiHint || "person"}
           />
@@ -95,3 +97,4 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
     </Card>
   );
 }
+

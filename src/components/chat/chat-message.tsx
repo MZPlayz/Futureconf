@@ -1,4 +1,6 @@
 
+'use client';
+
 import type { ChatMessage as Message } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
@@ -78,3 +80,4 @@ export function ChatMessage({ message }: ChatMessageProps) {
     </div>
   );
 }
+
