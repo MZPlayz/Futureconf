@@ -16,10 +16,10 @@ interface GridBackgroundProps {
 const GridBackground: React.FC<GridBackgroundProps> = ({
   children,
   className,
-  gridColor = 'hsl(var(--border) / 0.08)', // Made grid even more subtle
-  glowColor = 'hsl(var(--primary) / 0.1)', // Made glow more subtle
+  gridColor = 'hsl(var(--border) / 0.15)', // Increased alpha from 0.08 to 0.15 for more visibility
+  glowColor = 'hsl(var(--primary) / 0.1)', 
   glowSize = '500px',
-  gridSize = '30px', // Default grid cell size
+  gridSize = '30px', 
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +35,7 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
     };
 
     // Only add event listener if not on a touch device (optional enhancement)
-    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
     let currentRefValue = containerRef.current;
 
     if (!isTouchDevice && currentRefValue) {
@@ -52,13 +52,13 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
         currentRefValue.removeEventListener('mousemove', handleMouseMove);
       }
     };
-  }, []); // Empty dependency array ensures this runs once on mount and cleanup on unmount
+  }, []); 
 
   return (
     <div
       ref={containerRef}
       className={cn(
-        'relative w-full h-full overflow-hidden bg-background isolate', // Ensure children are above pseudo-elements
+        'relative w-full h-full overflow-hidden bg-background isolate', 
         className
       )}
       style={
@@ -67,7 +67,6 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
           '--glow-color': glowColor,
           '--glow-size': glowSize,
           '--grid-cell-size': gridSize,
-          // Default mouse position to center until first move
           '--mouse-x': '50%', 
           '--mouse-y': '50%',
         } as React.CSSProperties
@@ -86,7 +85,7 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
       />
       {/* Mouse Follow Glow */}
       <div
-        className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100" // Fade in glow on hover
+        className="absolute inset-0 z-0 pointer-events-none transition-opacity duration-300 opacity-0 group-hover:opacity-100" 
         style={{
           background: `
             radial-gradient(
@@ -98,7 +97,6 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
         }}
       />
       <div className="relative z-10 h-full"> 
-        {/* Added h-full to ensure children can fill the space if GridBackground has a defined height or is flex item */}
         {children}
       </div>
     </div>
