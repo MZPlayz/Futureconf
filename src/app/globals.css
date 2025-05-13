@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 240 5% 9%; /* #1A1A1D - Dark Desaturated Blue/Grey */
+    --background: 240 5% 7%; /* #121214 - Darker Gray, closer to 1A1A1D */
     --foreground: 240 5% 95%; /* Very Light Grey/Almost White */
 
     --card: 240 5% 12%; /* Slightly Lighter Dark Blue/Grey for Cards */
@@ -28,7 +28,7 @@
     --destructive: 0 65% 50%; /* Slightly desaturated red for destructive actions */
     --destructive-foreground: 0 0% 98%; /* Light text for destructive */
 
-    --border: 240 5% 18%; /* Slightly lighter grey-blue border */
+    --border: 240 5% 15%; /* Slightly lighter grey-blue border, used for grid lines */
     --input: 240 5% 15%; /* Input background, same as border or card */
     --ring: 28 100% 60%; /* Orange ring, slightly brighter than primary */
     
@@ -58,4 +58,13 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+html, body {
+  overscroll-behavior: none; /* Prevents pull-to-refresh and other overscroll behaviors if not desired */
+}
+
+/* Ensure group-hover works for opacity transition */
+.group:hover .group-hover\:opacity-100 {
+  opacity: 1;
 }
