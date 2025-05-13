@@ -3,13 +3,14 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useState, useEffect } from 'react';
-import { auth } from '@/lib/firebase';
+import { auth, googleProvider } from '@/lib/firebase';
 import type { User, AuthError } from 'firebase/auth';
 import { 
   onAuthStateChanged, 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
-  signOut 
+  signOut,
+  signInWithPopup
 } from 'firebase/auth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,6 +21,7 @@ interface AuthContextType {
   signUpUser: (email: string, password: string) => Promise<User | null>;
   signInUser: (email: string, password: string) => Promise<User | null>;
   signOutUser: () => Promise<void>;
+  signInWithGoogle: () => Promise<User | null>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,6 +74,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const signInWithGoogle = async (): Promise<User | null> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      setUser(userCredential.user);
+      toast({ title: 'Signed In with Google', description: 'Successfully signed in!' });
+      return userCredential.user;
+    } catch (err) {
+      setError(err as AuthError);
+      toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as AuthError).message });
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOutUser = async () => {
     setLoading(true);
     setError(null);
@@ -94,7 +113,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signUpUser,
     signInUser,
     signOutUser,
+    signInWithGoogle,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+

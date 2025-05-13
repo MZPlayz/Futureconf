@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { RadioTower, Loader2 } from 'lucide-react';
 
 export default function SignUpPage() {
-  const { user, signUpUser, loading: authLoading } = useAuth();
+  const { user, signUpUser, signInWithGoogle, loading: authLoading } = useAuth();
   const router = useRouter();
   const [formLoading, setFormLoading] = React.useState(false);
 
@@ -26,8 +26,17 @@ export default function SignUpPage() {
     }
     setFormLoading(false);
   };
+
+  const handleGoogleSignUp = async () => {
+    setFormLoading(true);
+    const signedUpUser = await signInWithGoogle();
+    if (signedUpUser) {
+      router.push('/');
+    }
+    setFormLoading(false);
+  };
   
-  if (authLoading || (!authLoading && user)) {
+  if (authLoading || (!authLoading && user && !formLoading)) { // Check formLoading to prevent flicker
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -41,7 +50,13 @@ export default function SignUpPage() {
         <RadioTower className="h-12 w-12 text-primary" />
         <h1 className="text-4xl font-bold text-foreground">FutureConf</h1>
       </div>
-      <AuthForm isSignUp onSubmit={handleSignUp} loading={formLoading || authLoading} />
+      <AuthForm 
+        isSignUp 
+        onSubmit={handleSignUp} 
+        onGoogleSignIn={handleGoogleSignUp}
+        loading={formLoading || authLoading} 
+      />
     </div>
   );
 }
+

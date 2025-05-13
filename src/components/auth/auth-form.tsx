@@ -11,6 +11,18 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { Separator } from '@/components/ui/separator';
+
+const GoogleIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px">
+    <path fill="#EA4335" d="M24 9.5c3.405 0 6.003 1.153 7.999 3.024l5.966-5.966C34.33 3.291 29.715 1.5 24 1.5c-6.627 0-12.327 3.915-14.999 9.818l7.159 5.522C17.927 12.475 20.718 9.5 24 9.5z"/>
+    <path fill="#4285F4" d="M46.5 24c0-1.653-.146-3.246-.422-4.781H24v9.026h12.839c-.561 3.068-2.258 5.617-4.818 7.377l7.122 5.504C43.348 37.438 46.5 31.261 46.5 24z"/>
+    <path fill="#FBBC05" d="M9.001 28.621c-.504-1.522-.789-3.142-.789-4.833s.285-3.311.789-4.833L1.842 13.45C.663 16.451 0 19.995 0 23.788s.663 7.337 1.842 10.338l7.159-5.505z"/>
+    <path fill="#34A853" d="M24 48c6.441 0 11.865-2.132 15.827-5.761l-7.122-5.504c-2.136 1.426-4.882 2.273-7.705 2.273-3.553 0-6.613-1.907-8.207-4.708l-7.159 5.522C11.241 43.562 17.158 48 24 48z"/>
+    <path fill="none" d="M0 0h48v48H0z"/>
+  </svg>
+);
+
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -22,10 +34,11 @@ type FormData = z.infer<typeof formSchema>;
 interface AuthFormProps {
   isSignUp?: boolean;
   onSubmit: (data: FormData) => Promise<void>;
+  onGoogleSignIn?: () => Promise<void>;
   loading: boolean;
 }
 
-export function AuthForm({ isSignUp = false, onSubmit, loading }: AuthFormProps) {
+export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, loading }: AuthFormProps) {
   const {
     register,
     handleSubmit,
@@ -82,8 +95,33 @@ export function AuthForm({ isSignUp = false, onSubmit, loading }: AuthFormProps)
             {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : buttonText}
           </Button>
         </form>
+
+        {onGoogleSignIn && (
+          <>
+            <div className="my-6 flex items-center">
+              <Separator className="flex-grow" />
+              <span className="mx-4 text-xs text-muted-foreground">OR</span>
+              <Separator className="flex-grow" />
+            </div>
+            <Button
+              variant="outline"
+              className="w-full py-3 text-base font-semibold rounded-md border-border hover:bg-accent"
+              onClick={onGoogleSignIn}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <>
+                  <GoogleIcon /> 
+                  <span className="ml-2">Sign in with Google</span>
+                </>
+              )}
+            </Button>
+          </>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-center">
+      <CardFooter className="flex justify-center pt-6">
         <Link href={linkHref} passHref>
           <Button variant="link" className="text-sm text-primary hover:text-primary/80">
             {linkText}
@@ -93,3 +131,4 @@ export function AuthForm({ isSignUp = false, onSubmit, loading }: AuthFormProps)
     </Card>
   );
 }
+
