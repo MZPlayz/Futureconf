@@ -1,7 +1,7 @@
 import type { ChatMessage as Message } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns'; // Using isValid for better date checking
 import { User2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
@@ -14,13 +14,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const [formattedTimestamp, setFormattedTimestamp] = useState<string>('');
 
   useEffect(() => {
-    // Ensure timestamp is valid before formatting
-    if (timestamp && new Date(timestamp).toString() !== "Invalid Date") {
-      setFormattedTimestamp(format(new Date(timestamp), "p"));
-    } else {
-      setFormattedTimestamp("..."); // Fallback for invalid or missing timestamp
+    // Ensure timestamp is valid before formatting and it's client-side only
+    if (typeof window !== 'undefined') {
+      if (timestamp && isValid(new Date(timestamp))) { // Use isValid for robust checking
+        setFormattedTimestamp(format(new Date(timestamp), "p"));
+      } else {
+        setFormattedTimestamp("..."); // Fallback for invalid or missing timestamp
+      }
     }
-  }, [timestamp]);
+    // If window is undefined (server-side), set a placeholder to avoid mismatch.
+    // This ensures `formattedTimestamp` has a consistent initial value on both server and client before the effect runs.
+    else {
+        setFormattedTimestamp("...");
+    }
+  }, [timestamp]); // Dependency array includes timestamp
 
   return (
     <div
