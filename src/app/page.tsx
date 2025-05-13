@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect } from 'react';
@@ -85,70 +86,70 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <Card className="rounded-md border-border shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 bg-card">
+              <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-base font-semibold text-card-foreground">
+                  <CardTitle className="text-sm font-medium text-card-foreground">
                     New Meeting
                   </CardTitle>
-                  <Video className="h-4 w-4 text-primary" />
+                  <Video className="h-3.5 w-3.5 text-primary" />
                 </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <p className="text-xs text-muted-foreground mb-3">
+                <CardContent className="p-3 pt-1">
+                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
                     Launch a new video conference instantly.
-                  </p>
+                  </CardDescription>
                   <Link href="/conference" passHref>
                     <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-1.5 rounded-sm text-xs">
-                      <Video className="mr-1.5 h-3.5 w-3.5" /> Start Meeting
+                      <Video className="mr-1.5 h-3 w-3" /> Start Meeting
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
 
-              <Card className="rounded-md border-border shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 bg-card">
+              <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-base font-semibold text-card-foreground">
+                  <CardTitle className="text-sm font-medium text-card-foreground">
                     Participants Hub
                   </CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
                 </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <p className="text-xs text-muted-foreground mb-3">
+                <CardContent className="p-3 pt-1">
+                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
                     Manage contacts and view participant history (soon).
-                  </p>
+                  </CardDescription>
                    <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs" disabled>
-                    <Users className="mr-1.5 h-3.5 w-3.5" /> View Participants
+                    <Users className="mr-1.5 h-3 w-3" /> View Participants
                   </Button>
                 </CardContent>
               </Card>
               
-              <Card className="rounded-md border-border shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 bg-card">
+              <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-base font-semibold text-card-foreground">
+                  <CardTitle className="text-sm font-medium text-card-foreground">
                     Account Settings
                   </CardTitle>
-                  <Settings className="h-4 w-4 text-muted-foreground" />
+                  <Settings className="h-3.5 w-3.5 text-muted-foreground" />
                 </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <p className="text-xs text-muted-foreground mb-3">
+                <CardContent className="p-3 pt-1">
+                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
                     Configure your profile and application preferences.
-                  </p>
+                  </CardDescription>
                   <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs" disabled>
-                    <Settings className="mr-1.5 h-3.5 w-3.5" /> Go to Settings
+                    <Settings className="mr-1.5 h-3 w-3" /> Go to Settings
                   </Button>
                 </CardContent>
               </Card>
 
-               <Card className="rounded-md border-border shadow-lg hover:shadow-primary/30 transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 bg-card">
+               <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-base font-semibold text-card-foreground">
+                  <CardTitle className="text-sm font-medium text-card-foreground">
                     Explore Features
                   </CardTitle>
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
                 </CardHeader>
-                <CardContent className="p-3 pt-0">
-                  <p className="text-xs text-muted-foreground mb-3">
+                <CardContent className="p-3 pt-1">
+                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
                     Discover new tools and upcoming enhancements.
-                  </p>
+                  </CardDescription>
                    <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs" disabled>
                     Learn More
                   </Button>
@@ -163,12 +164,12 @@ export default function DashboardPage() {
           className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[40vh]"
         >
           <div className="relative z-10 max-w-2xl mx-auto w-full">
-            <Card className="rounded-md border-border shadow-xl bg-card/80 backdrop-blur-md w-full">
-              <CardHeader className="p-5">
-                <CardTitle className="text-lg font-semibold text-card-foreground text-center">Activity Feed</CardTitle>
+            <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-md w-full">
+              <CardHeader className="p-4">
+                <CardTitle className="text-base font-semibold text-card-foreground text-center">Activity Feed</CardTitle>
                 <CardDescription className="text-xs text-center text-muted-foreground">Recent activities and notifications (placeholder).</CardDescription>
               </CardHeader>
-              <CardContent className="p-5 pt-0 h-32 flex items-center justify-center">
+              <CardContent className="p-4 pt-0 h-28 flex items-center justify-center">
                 <p className="text-sm text-muted-foreground">No recent activity.</p>
               </CardContent>
             </Card>
@@ -182,3 +183,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
