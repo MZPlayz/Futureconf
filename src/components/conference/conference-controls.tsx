@@ -1,0 +1,131 @@
+import { Button } from '@/components/ui/button';
+import {
+  Mic,
+  MicOff,
+  Video,
+  VideoOff,
+  ScreenShare,
+  PhoneOff,
+  PanelRightOpen,
+  PanelRightClose,
+  ScreenShareOff, // Assuming this exists or use ScreenShare and toggle state
+} from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+interface ConferenceControlsProps {
+  isMuted: boolean;
+  isVideoEnabled: boolean;
+  isScreenSharing: boolean;
+  isChatPanelOpen: boolean;
+  onMuteToggle: () => void;
+  onVideoToggle: () => void;
+  onScreenShareToggle: () => void;
+  onEndCall: () => void;
+  onChatToggle: () => void;
+}
+
+export function ConferenceControls({
+  isMuted,
+  isVideoEnabled,
+  isScreenSharing,
+  isChatPanelOpen,
+  onMuteToggle,
+  onVideoToggle,
+  onScreenShareToggle,
+  onEndCall,
+  onChatToggle,
+}: ConferenceControlsProps) {
+  const controlButtonClass = "rounded-full w-12 h-12 p-3 transition-all duration-200 ease-in-out transform hover:scale-110";
+  const activeControlButtonClass = "bg-primary/20 text-primary";
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="flex justify-center items-center space-x-3 md:space-x-4 p-4 bg-background border-t border-border shadow-md">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={isMuted ? "destructive" : "outline"}
+              size="icon"
+              onClick={onMuteToggle}
+              className={`${controlButtonClass} ${isMuted ? 'bg-destructive/80 hover:bg-destructive text-white' : 'hover:bg-muted'}`}
+              aria-label={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isMuted ? "Unmute" : "Mute"}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={!isVideoEnabled ? "destructive" : "outline"}
+              size="icon"
+              onClick={onVideoToggle}
+              className={`${controlButtonClass} ${!isVideoEnabled ? 'bg-destructive/80 hover:bg-destructive text-white' : 'hover:bg-muted'}`}
+              aria-label={isVideoEnabled ? "Stop Video" : "Start Video"}
+            >
+              {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isVideoEnabled ? "Stop Video" : "Start Video"}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onScreenShareToggle}
+              className={`${controlButtonClass} ${isScreenSharing ? activeControlButtonClass : 'hover:bg-muted'}`}
+              aria-label={isScreenSharing ? "Stop Sharing" : "Share Screen"}
+            >
+              {isScreenSharing ? <ScreenShareOff className="w-5 h-5 text-primary" /> : <ScreenShare className="w-5 h-5" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isScreenSharing ? "Stop Sharing" : "Share Screen"}</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onChatToggle}
+              className={`${controlButtonClass} ${isChatPanelOpen ? activeControlButtonClass : 'hover:bg-muted'}`}
+              aria-label={isChatPanelOpen ? "Close Chat" : "Open Chat"}
+            >
+              {isChatPanelOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isChatPanelOpen ? "Hide Chat" : "Show Chat"}</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={onEndCall}
+              className={`${controlButtonClass} bg-red-500 hover:bg-red-600 text-white`}
+              aria-label="End Call"
+            >
+              <PhoneOff className="w-5 h-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>End Call</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
+  );
+}
