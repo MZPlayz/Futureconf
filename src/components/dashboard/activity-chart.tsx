@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -38,7 +38,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ActivityChart() {
-  // Handle case with no data or all zero data to show a message
   const hasActivity = chartData.some(d => d.meetings > 0 || d.messages > 0);
 
   if (!hasActivity) {
@@ -56,51 +55,79 @@ export function ActivityChart() {
     );
   }
 
-
   return (
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full text-xs">
-      <BarChart 
-        accessibilityLayer 
-        data={chartData} 
-        margin={{ top: 25, right: 10, left: -20, bottom: 5 }}
-        barGap={4} // Space between bars of the same group
-        barCategoryGap="20%" // Space between groups of bars
-      >
-        <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
-        <XAxis
-          dataKey="day"
-          tickLine={false}
-          axisLine={false}
-          tickMargin={8}
-          className="fill-muted-foreground"
-        />
-        <YAxis 
-            tickLine={false} 
-            axisLine={false} 
-            tickMargin={8} 
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          accessibilityLayer
+          data={chartData}
+          margin={{ top: 25, right: 10, left: -20, bottom: 5 }}
+        >
+          <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-border/50" />
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
             className="fill-muted-foreground"
-            width={30} // Ensure enough space for Y-axis labels
-        />
-        <ChartTooltip
-          cursor={true}
-          wrapperClassName="rounded-lg shadow-lg"
-          content={<ChartTooltipContent 
-            indicator="dot" 
-            className="bg-popover text-popover-foreground border-border/70 shadow-xl rounded-md text-[11px]" 
-            labelClassName="font-semibold"
-            hideLabel={false}
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            className="fill-muted-foreground"
+            width={30}
+          />
+          <ChartTooltip
+            cursor={true}
+            wrapperClassName="rounded-lg shadow-lg"
+            content={<ChartTooltipContent
+              indicator="dot"
+              className="bg-popover text-popover-foreground border-border/70 shadow-xl rounded-md text-[11px]"
+              labelClassName="font-semibold"
+              hideLabel={false}
             />}
-        />
-        <ChartLegend 
-            content={<ChartLegendContent className="text-[11px] [&>div]:gap-1 [&_svg]:size-2.5"/>} 
-            wrapperStyle={{ paddingTop: '20px' }} 
-            verticalAlign="top" 
+          />
+          <ChartLegend
+            content={<ChartLegendContent className="text-[11px] [&>div]:gap-1 [&_svg]:size-2.5" />}
+            wrapperStyle={{ paddingTop: '20px' }}
+            verticalAlign="top"
             align="right"
-            
-        />
-        <Bar dataKey="meetings" fill="var(--color-meetings)" radius={[4, 4, 0, 0]} maxBarSize={30} />
-        <Bar dataKey="messages" fill="var(--color-messages)" radius={[4, 4, 0, 0]} maxBarSize={30}/>
-      </BarChart>
+          />
+          <Line
+            dataKey="meetings"
+            type="monotone"
+            stroke="var(--color-meetings)"
+            strokeWidth={2}
+            dot={{
+              fill: "var(--color-meetings)",
+              r: 3,
+            }}
+            activeDot={{
+              r: 5,
+              strokeWidth: 1,
+              fill: 'hsl(var(--background))',
+              stroke: 'var(--color-meetings)',
+            }}
+          />
+          <Line
+            dataKey="messages"
+            type="monotone"
+            stroke="var(--color-messages)"
+            strokeWidth={2}
+            dot={{
+              fill: "var(--color-messages)",
+              r: 3,
+            }}
+            activeDot={{
+              r: 5,
+              strokeWidth: 1,
+              fill: 'hsl(var(--background))',
+              stroke: 'var(--color-messages)',
+            }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </ChartContainer>
   );
 }
