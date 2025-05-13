@@ -9,13 +9,14 @@ import type { ChatMessage, Participant } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun } from 'lucide-react';
+import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun, GripVertical, ChevronsLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 
 const initialParticipants: Participant[] = [
@@ -58,6 +59,9 @@ export default function FutureConfPage() {
   const [currentTime, setCurrentTime] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [theme, setTheme] = useState('dark');
+
+  const [isResizing, setIsResizing] = useState(false);
+  const [chatPanelWidth, setChatPanelWidth] = useState(300); // Initial width
 
 
   useEffect(() => {
@@ -385,10 +389,39 @@ export default function FutureConfPage() {
     return {...p, mediaStream: null}; 
   });
 
+  const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
+    setIsResizing(true);
+    mouseDownEvent.preventDefault();
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  const resize = useCallback((mouseMoveEvent: MouseEvent) => {
+    if (isResizing) {
+      let newWidth = window.innerWidth - mouseMoveEvent.clientX;
+      if (newWidth < 200) newWidth = 200; // Min width
+      if (newWidth > window.innerWidth / 2) newWidth = window.innerWidth / 2; // Max width
+      setChatPanelWidth(newWidth);
+    }
+  }, [isResizing]);
+
+  useEffect(() => {
+    if(isResizing){
+        window.addEventListener('mousemove', resize);
+        window.addEventListener('mouseup', stopResizing);
+    }
+    return () => {
+        window.removeEventListener('mousemove', resize);
+        window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [isResizing, resize, stopResizing]);
+
   if (authLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -396,31 +429,31 @@ export default function FutureConfPage() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden antialiased">
       <main className="flex-1 flex flex-col relative">
-         <header className="p-1.5 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between shadow-sm">
-          <div className="flex items-center space-x-2">
+         <header className="p-1 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between shadow-sm">
+          <div className="flex items-center space-x-1.5">
             <Link href="/" passHref>
               <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors w-7 h-7 rounded-md">
-                      <RadioTower className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors w-6 h-6 rounded-sm">
+                      <RadioTower className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>Dashboard</p></TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </Link>
-            <Separator orientation="vertical" className="h-5" />
-            <h1 className="text-sm font-semibold text-foreground tracking-tight">FutureConf Meeting</h1>
+            <Separator orientation="vertical" className="h-4" />
+            <h1 className="text-xs font-semibold text-foreground tracking-tight">FutureConf Meeting</h1>
           </div>
           
-          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-            <span className="hidden sm:inline px-2 py-1 bg-muted rounded-md">{currentTime}</span>
+          <div className="flex items-center space-x-0.5 text-xs text-muted-foreground">
+            <span className="hidden sm:inline px-1.5 py-0.5 bg-muted rounded-sm text-[10px]">{currentTime}</span>
             <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                     <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md" onClick={toggleTheme}>
-                       {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                     <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm" onClick={toggleTheme}>
+                       {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
                      </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>Toggle Theme</p></TooltipContent>
@@ -428,8 +461,8 @@ export default function FutureConfPage() {
 
                <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md">
-                      <Zap className="w-3.5 h-3.5 text-yellow-400" />
+                    <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm">
+                      <Zap className="w-3 h-3 text-yellow-400" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>AI Features (Soon)</p></TooltipContent>
@@ -437,8 +470,8 @@ export default function FutureConfPage() {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md">
-                      <Settings2 className="w-3.5 h-3.5" />
+                    <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm">
+                      <Settings2 className="w-3 h-3" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>Settings (Soon)</p></TooltipContent>
@@ -446,19 +479,19 @@ export default function FutureConfPage() {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md" onClick={toggleFullScreen}>
-                    {isFullScreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+                  <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm" onClick={toggleFullScreen}>
+                    {isFullScreen ? <Minimize className="w-3 h-3" /> : <Maximize className="w-3 h-3" />}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs">
                   <p>{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</p>
                 </TooltipContent>
               </Tooltip>
-              <Separator orientation="vertical" className="h-5 mx-1" />
+              <Separator orientation="vertical" className="h-4 mx-0.5" />
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-7 h-7 text-red-500 hover:text-red-600 rounded-md" onClick={() => handleLogout()}>
-                    <LogOut className="w-3.5 h-3.5" />
+                  <Button variant="ghost" size="icon" className="w-6 h-6 text-red-500 hover:text-red-600 rounded-sm" onClick={() => handleLogout()}>
+                    <LogOut className="w-3 h-3" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="text-xs"><p>Logout</p></TooltipContent>
@@ -470,9 +503,9 @@ export default function FutureConfPage() {
         {hasCameraPermission === false && (
           <div className="absolute top-12 left-1/2 -translate-x-1/2 z-10 p-2 w-full max-w-md">
               <Alert variant="destructive" className="rounded-md shadow-lg text-xs">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  <AlertTitle className="text-sm">Camera & Mic Access Denied</AlertTitle>
-                  <AlertDescription>
+                  <AlertTriangle className="h-3 w-3" />
+                  <AlertTitle className="text-xs font-semibold">Camera & Mic Access Denied</AlertTitle>
+                  <AlertDescription className="text-[11px]">
                       FutureConf needs camera and microphone access. Please enable permissions in your browser settings and refresh the page.
                   </AlertDescription>
               </Alert>
@@ -497,7 +530,23 @@ export default function FutureConfPage() {
         />
       </main>
       {isChatPanelOpen && (
-        <div className="w-full md:w-[260px] lg:w-[280px] xl:w-[300px] h-full flex flex-col border-l border-border bg-card/50 backdrop-blur-md shadow-xl md:shadow-lg">
+        <>
+        <div 
+            onMouseDown={startResizing}
+            className={cn(
+                "hidden md:flex items-center justify-center w-2.5 cursor-col-resize group hover:bg-primary/20 transition-colors duration-150",
+                isResizing && "bg-primary/30"
+            )}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize chat panel"
+        >
+            <ChevronsLeftRight className={cn("h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors", isResizing && "text-primary")} />
+        </div>
+        <div 
+          className="h-full flex flex-col border-l border-border bg-card/50 backdrop-blur-md shadow-xl md:shadow-lg"
+          style={{ width: `${chatPanelWidth}px`}}
+        >
            <ChatPanel
             messages={messages}
             smartReplies={smartReplySuggestions}
@@ -508,6 +557,7 @@ export default function FutureConfPage() {
             setCurrentMessage={setCurrentMessage}
            />
         </div>
+        </>
       )}
     </div>
   );

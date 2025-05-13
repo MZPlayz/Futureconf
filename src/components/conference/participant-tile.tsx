@@ -32,10 +32,11 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
 
   useEffect(() => {
     if (isClient && videoRef.current) {
-      if (mediaStream && typeof MediaStream !== 'undefined' && mediaStream instanceof MediaStream) {
+      // Check if MediaStream is defined and mediaStream is an instance of it
+      if (typeof MediaStream !== 'undefined' && mediaStream instanceof MediaStream) {
         videoRef.current.srcObject = mediaStream;
       } else {
-        videoRef.current.srcObject = null;
+        videoRef.current.srcObject = null; // Clear srcObject if stream is not valid or null
       }
     }
   }, [mediaStream, isClient]); 
@@ -45,7 +46,7 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
 
 
   return (
-    <Card className="relative aspect-video overflow-hidden bg-muted shadow-none border-none rounded-sm"> {/* Reduced radius */}
+    <Card className="relative aspect-video overflow-hidden bg-muted shadow-none border-none rounded-sm">
       <CardContent className="p-0 h-full flex items-center justify-center">
         {showVideoStream ? (
           <video
@@ -65,10 +66,10 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
           />
         ) : (
           <div className="w-full h-full bg-muted flex items-center justify-center">
-            <Avatar className="w-12 h-12 md:w-16 md:h-16"> {/* Reduced avatar size */}
+            <Avatar className="w-10 h-10 md:w-14 md:h-14">
               <AvatarImage src={avatar} alt={name} data-ai-hint={dataAiHint || "person"} />
-              <AvatarFallback className="text-lg md:text-xl bg-card"> {/* Reduced font size */}
-                {name ? name.charAt(0).toUpperCase() : <User className="w-6 h-6 md:w-8 md:h-8" />} {/* Reduced icon size */}
+              <AvatarFallback className="text-base md:text-lg bg-card">
+                {name ? name.charAt(0).toUpperCase() : <User className="w-5 h-5 md:w-7 md:h-7" />}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -76,11 +77,11 @@ export function ParticipantTile({ participant }: ParticipantTileProps) {
 
         {((isLocal && !isVideoEnabled && !isScreenSharing) || (!isLocal && !isVideoEnabled)) && !isScreenSharing && (
            <div className="absolute inset-0 bg-black/40 flex items-center justify-center pointer-events-none">
-             <VideoOff className="w-6 h-6 md:w-8 md:h-8 text-white/80" /> {/* Reduced icon size */}
+             <VideoOff className="w-5 h-5 md:w-7 md:h-7 text-white/80" />
            </div>
         )}
 
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1 md:p-1.5"> {/* Reduced padding */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-1 md:p-1.5">
           <div className="flex items-center justify-between">
             <span className={`text-xs font-medium text-white truncate ${isSpeaking ? 'ring-1 ring-green-400 bg-green-500/40 rounded-sm px-1 py-0.5' : ''}`}>
               {name} {isLocal && "(You)"}

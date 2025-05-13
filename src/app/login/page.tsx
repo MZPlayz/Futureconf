@@ -38,16 +38,16 @@ export default function LoginPage() {
   if (authLoading || (!authLoading && user && !formLoading) ) { 
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" /> {/* Reduced size */}
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-card p-4">
-      <div className="mb-4 flex items-center space-x-2">  {/* Reduced mb */}
-        <RadioTower className="h-7 w-7 text-primary" />  {/* Reduced size */}
-        <h1 className="text-2xl font-bold text-foreground">FutureConf</h1>  {/* Reduced size */}
+      <div className="mb-3 flex items-center space-x-1.5">
+        <RadioTower className="h-6 w-6 text-primary" />
+        <h1 className="text-xl font-bold text-foreground">FutureConf</h1>
       </div>
       <AuthForm 
         onSubmit={handleLogin} 
