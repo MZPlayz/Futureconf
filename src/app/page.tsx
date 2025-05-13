@@ -5,11 +5,20 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown } from 'lucide-react';
+import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import GridBackground from '@/components/ui/grid-background';
 import { ActivityChart } from '@/components/dashboard/activity-chart';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function DashboardPage() {
   const { user, loading, signOutUser } = useAuth();
@@ -23,6 +32,7 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await signOutUser();
+    // AuthProvider's onAuthStateChange will handle redirect to /login
   };
 
   if (loading || !user) {
@@ -37,23 +47,55 @@ export default function DashboardPage() {
     <div className="flex flex-col min-h-screen text-foreground antialiased">
       <header className="p-2.5 border-b border-border flex-shrink-0 bg-card/80 shadow-sm sticky top-0 z-50 backdrop-blur-md">
         <div className="flex items-center justify-between max-w-7xl mx-auto px-3 sm:px-5 lg:px-6">
+          {/* Left Side: Logo and Title */}
           <div className="flex items-center space-x-1.5">
             <RadioTower className="w-5 h-5 text-primary" />
             <h1 className="text-lg font-semibold text-foreground">
               FutureConf <span className="font-light text-primary/90">Dashboard</span>
             </h1>
           </div>
-          <div className="flex items-center space-x-2">
+
+          {/* Right Side: Actions */}
+          <div className="flex items-center space-x-3">
             <Link href="/conference" passHref>
-              <Button variant="outline" size="sm" className="rounded-md text-xs">
-                <Video className="mr-1 h-3.5 w-3.5" />
-                Join Conference
+              <Button variant="default" size="sm" className="rounded-md text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+                <Video className="mr-1.5 h-3.5 w-3.5" />
+                New Meeting
               </Button>
             </Link>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="rounded-md text-muted-foreground hover:text-primary text-xs">
-              <LogOut className="mr-1 h-3.5 w-3.5" />
-              Logout
-            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={`https://picsum.photos/seed/${user.id}/40/40`} alt={user.email?.charAt(0).toUpperCase() || 'U'} data-ai-hint="user profile" />
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase() || <UserCircle className="h-5 w-5"/>}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none text-foreground">
+                      {user.email?.split('@')[0] || 'User'}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-not-allowed opacity-50">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Account Settings (Soon)</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </header>
