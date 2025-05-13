@@ -22,21 +22,23 @@ export default function SignUpPage() {
     setFormLoading(true);
     const signedUpUser = await signUpUser(data.email, data.password);
     if (signedUpUser) {
-      router.push('/');
+      // For Supabase, user might need to confirm email.
+      // Redirecting to login or a "check your email" page might be better.
+      // For now, if a user object is returned (even if not fully active),
+      // the useEffect above will handle redirection if session gets established.
+      // router.push('/'); // Or router.push('/login');
     }
     setFormLoading(false);
   };
 
   const handleGoogleSignUp = async () => {
     setFormLoading(true);
-    const signedUpUser = await signInWithGoogle();
-    if (signedUpUser) {
-      router.push('/');
-    }
-    setFormLoading(false);
+    await signInWithGoogle();
+    // OAuth redirects, so no direct user object or push here.
+    setFormLoading(false); // In case of error before redirect
   };
   
-  if (authLoading || (!authLoading && user && !formLoading)) { // Check formLoading to prevent flicker
+  if (authLoading || (!authLoading && user && !formLoading)) { 
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -46,9 +48,9 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-card p-4">
-       <div className="mb-6 flex items-center space-x-2"> {/* Reduced mb, space-x */}
-        <RadioTower className="h-8 w-8 text-primary" /> {/* Reduced size */}
-        <h1 className="text-3xl font-bold text-foreground">FutureConf</h1> {/* Reduced size */}
+       <div className="mb-6 flex items-center space-x-2"> 
+        <RadioTower className="h-8 w-8 text-primary" /> 
+        <h1 className="text-3xl font-bold text-foreground">FutureConf</h1> 
       </div>
       <AuthForm 
         isSignUp 

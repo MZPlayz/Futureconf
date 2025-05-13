@@ -61,27 +61,25 @@ export default function FutureConfPage() {
     if (!authLoading && !user) {
       router.push('/login');
     } else if (user) {
-      // Initialize local participant
       const localParticipant: Participant = {
-        id: user.uid,
-        name: 'You', // Or user.displayName || user.email?.split('@')[0] || 'You'
-        avatar: `https://picsum.photos/seed/${user.uid}/200/200`,
+        id: user.id, // Use user.id for Supabase
+        name: user.email?.split('@')[0] || 'You',
+        avatar: `https://picsum.photos/seed/${user.id}/200/200`, // Use user.id
         isHost: false,
-        isSpeaking: true, // Example, should be based on actual activity
+        isSpeaking: true, 
         dataAiHint: 'person happy',
         isLocal: true,
-        isVideoEnabled: false, // Initially off
-        isMuted: false, // Initially unmuted
+        isVideoEnabled: false, 
+        isMuted: false, 
       };
       setParticipants([localParticipant, ...initialParticipants.filter(p => !p.isLocal)]);
       
-      // Add an initial message from "You" if desired
       setMessages(prev => {
-        const userMessageExists = prev.some(m => m.sender === "You");
+        const userMessageExists = prev.some(m => m.sender === (user.email?.split('@')[0] || 'You'));
         if (!userMessageExists) {
           return [
             ...prev,
-            { id: '3', sender: 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: `https://picsum.photos/seed/${user.uid}/40/40` }
+            { id: '3', sender: user.email?.split('@')[0] || 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: `https://picsum.photos/seed/${user.id}/40/40` } // Use user.id
           ].sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
         }
         return prev;
@@ -111,20 +109,20 @@ export default function FutureConfPage() {
   };
   
   const handleLogout = async () => {
-    handleEndCall(true); // End call and then sign out
+    await handleEndCall(true); 
   };
 
   useEffect(() => {
     let isMounted = true;
     const getCameraPermission = async () => {
-      if (typeof navigator !== 'undefined' && navigator.mediaDevices && user) { // Check for user
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices && user) { 
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           if (isMounted) {
             setLocalCameraStream(stream);
             setHasCameraPermission(true);
             setIsVideoEnabled(true);
-            setIsMuted(false); // Unmute by default when camera is on
+            setIsMuted(false); 
             setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: true, isMuted: false } : p));
           }
         } catch (error) {
@@ -139,7 +137,7 @@ export default function FutureConfPage() {
             });
           }
         }
-      } else if(user) { // Check for user
+      } else if(user) { 
         if (isMounted) {
           setHasCameraPermission(false); 
           console.warn("navigator.mediaDevices is not available.")
@@ -147,7 +145,7 @@ export default function FutureConfPage() {
       }
     };
 
-    if (user) { // Only get permission if user is logged in
+    if (user) { 
       getCameraPermission();
     }
 
@@ -167,18 +165,18 @@ export default function FutureConfPage() {
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, user]); // Add user dependency
+  }, [toast, user]); 
 
 
   const handleSendMessage = useCallback((text: string) => {
     if (text.trim() === '' || !user) return;
     const newMessage: ChatMessage = {
       id: String(Date.now()),
-      sender: 'You', // Or user.displayName or email
+      sender: user.email?.split('@')[0] || 'You',
       text,
       timestamp: new Date(),
       isOwn: true,
-      avatar: `https://picsum.photos/seed/${user.uid}/40/40`
+      avatar: `https://picsum.photos/seed/${user.id}/40/40` // Use user.id
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setCurrentMessage('');
@@ -186,7 +184,7 @@ export default function FutureConfPage() {
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (messages.length === 0 || !isChatPanelOpen || !user) { // Check for user
+      if (messages.length === 0 || !isChatPanelOpen || !user) { 
         setSmartReplySuggestions([]);
         return;
       }
@@ -209,9 +207,9 @@ export default function FutureConfPage() {
       }
     };
 
-    const timer = setTimeout(fetchSuggestions, 500); // Debounce
+    const timer = setTimeout(fetchSuggestions, 500); 
     return () => clearTimeout(timer);
-  }, [messages, isChatPanelOpen, toast, user]); // Add user dependency
+  }, [messages, isChatPanelOpen, toast, user]); 
 
   const handleSmartReplyClick = (reply: string) => {
     setCurrentMessage(reply);
@@ -220,7 +218,7 @@ export default function FutureConfPage() {
   const toggleChatPanel = () => setIsChatPanelOpen(prev => !prev);
 
   const handleMuteToggle = () => {
-    if (!user) return; // Check for user
+    if (!user) return; 
     const newIsMuted = !isMuted;
     setIsMuted(newIsMuted); 
 
@@ -235,7 +233,7 @@ export default function FutureConfPage() {
   };
 
   const handleVideoToggle = async () => {
-    if (!user) return; // Check for user
+    if (!user) return; 
     const newIsVideoEnabled = !isVideoEnabled;
     
     if (newIsVideoEnabled) {
@@ -244,7 +242,7 @@ export default function FutureConfPage() {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 setLocalCameraStream(stream);
                 setHasCameraPermission(true);
-                stream.getAudioTracks().forEach(track => track.enabled = !isMuted); // Respect current mute state
+                stream.getAudioTracks().forEach(track => track.enabled = !isMuted); 
             } catch (error) {
                 console.error('Error accessing camera:', error);
                 setHasCameraPermission(false);
@@ -265,7 +263,7 @@ export default function FutureConfPage() {
   };
   
   const handleScreenShareToggle = async () => {
-    if (!user) return; // Check for user
+    if (!user) return; 
     const newIsScreenSharing = !isScreenSharing;
     const youParticipant = participants.find(p => p.isLocal);
 
@@ -320,17 +318,17 @@ export default function FutureConfPage() {
     
     if (isLoggingOut) {
       await signOutUser();
-      router.push('/login');
+      // router.push('/login'); // onAuthStateChange will handle this
     } else {
       toast({ title: 'Call Ended', description: 'You have left the meeting.' });
-      router.push('/'); // Go to dashboard after ending call
+      router.push('/'); 
     }
     
-    // Reset state - might not be fully necessary if redirecting, but good practice
     setMessages([]);
     setParticipants(initialParticipants.map(p => {
       const baseParticipant = {...p, mediaStream: null, isVideoEnabled: false, isMuted: false, isScreenSharing: false};
       if (p.isLocal) {
+        // This part might be cleared by onAuthStateChange if logging out
         return {...baseParticipant, isVideoEnabled: false, isMuted: true}; 
       }
       return baseParticipant;
@@ -360,7 +358,7 @@ export default function FutureConfPage() {
             isScreenSharing: isCurrentlyScreenSharing,
         };
     }
-    // Simulate other participants' video status (can be more dynamic in a real app)
+    // Simulate other participants' video status 
     if(p.id === 'p1') return {...p, isVideoEnabled: true, mediaStream: null } 
     if(p.id === 'p3') return {...p, isVideoEnabled: false, mediaStream: null } 
     return {...p, mediaStream: null}; 
@@ -469,8 +467,7 @@ export default function FutureConfPage() {
             onSendMessage={handleSendMessage}
             onSmartReplyClick={handleSmartReplyClick}
             setCurrentMessage={setCurrentMessage}
-            participantCount={participants.length}
-          />
+           />
         </div>
       )}
     </div>

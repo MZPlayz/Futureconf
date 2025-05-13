@@ -4,7 +4,7 @@
 import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -21,7 +21,7 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     await signOutUser();
-    router.push('/login');
+    // router.push('/login'); // onAuthStateChange will trigger redirect
   };
 
   if (loading || !user) {

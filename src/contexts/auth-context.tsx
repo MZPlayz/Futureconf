@@ -3,91 +3,114 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useState, useEffect } from 'react';
-import { auth, googleProvider } from '@/lib/firebase';
-import type { User, AuthError } from 'firebase/auth';
-import { 
-  onAuthStateChanged, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  signOut,
-  signInWithPopup
-} from 'firebase/auth';
+import { supabase } from '@/lib/supabase';
+import type { User as SupabaseUser, AuthError as SupabaseAuthError, Session } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
-  user: User | null;
+  user: SupabaseUser | null;
+  session: Session | null;
   loading: boolean;
-  error: AuthError | null;
-  signUpUser: (email: string, password: string) => Promise<User | null>;
-  signInUser: (email: string, password: string) => Promise<User | null>;
+  error: SupabaseAuthError | null;
+  signUpUser: (email: string, password: string) => Promise<SupabaseUser | null>;
+  signInUser: (email: string, password: string) => Promise<SupabaseUser | null>;
   signOutUser: () => Promise<void>;
-  signInWithGoogle: () => Promise<User | null>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<AuthError | null>(null);
+  const [error, setError] = useState<SupabaseAuthError | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    setLoading(true);
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
-  const signUpUser = async (email: string, password: string): Promise<User | null> => {
+  const signUpUser = async (email: string, password: string): Promise<SupabaseUser | null> => {
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      setUser(userCredential.user);
-      toast({ title: 'Account Created', description: 'Successfully signed up!' });
-      return userCredential.user;
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      if (signUpError) throw signUpError;
+      // Supabase sends a confirmation email by default. 
+      // The user object might be in data.user, but session will be null until confirmation.
+      toast({ title: 'Account Created', description: 'Please check your email to confirm your account.' });
+      return data.user; // User might not be active yet, onAuthStateChange will update state.
     } catch (err) {
-      setError(err as AuthError);
-      toast({ variant: 'destructive', title: 'Sign Up Error', description: (err as AuthError).message });
+      setError(err as SupabaseAuthError);
+      toast({ variant: 'destructive', title: 'Sign Up Error', description: (err as SupabaseAuthError).message });
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const signInUser = async (email: string, password: string): Promise<User | null> => {
+  const signInUser = async (email: string, password: string): Promise<SupabaseUser | null> => {
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setUser(userCredential.user);
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) throw signInError;
+      // onAuthStateChange will handle setting user and session
       toast({ title: 'Signed In', description: 'Successfully signed in!' });
-      return userCredential.user;
+      return data.user;
     } catch (err) {
-      setError(err as AuthError);
-      toast({ variant: 'destructive', title: 'Sign In Error', description: (err as AuthError).message });
+      setError(err as SupabaseAuthError);
+      toast({ variant: 'destructive', title: 'Sign In Error', description: (err as SupabaseAuthError).message });
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const signInWithGoogle = async (): Promise<User | null> => {
+  const signInWithGoogle = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     try {
-      const userCredential = await signInWithPopup(auth, googleProvider);
-      setUser(userCredential.user);
-      toast({ title: 'Signed In with Google', description: 'Successfully signed in!' });
-      return userCredential.user;
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+        },
+      });
+      if (oauthError) throw oauthError;
+      // User will be redirected. onAuthStateChange will pick up the session on return.
+      // Toast for success can be shown on redirect page or after session is confirmed by onAuthStateChange
     } catch (err) {
-      setError(err as AuthError);
-      toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as AuthError).message });
-      return null;
+      setError(err as SupabaseAuthError);
+      toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as SupabaseAuthError).message });
     } finally {
-      setLoading(false);
+      // setLoading might not be necessary here as page redirects
+      // If no redirect happens due to error, then false.
+      // setLoading(false); // This depends on flow, if error occurs before redirect.
     }
   };
 
@@ -95,12 +118,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     setError(null);
     try {
-      await signOut(auth);
-      setUser(null);
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+      // onAuthStateChange will handle setting user and session to null
       toast({ title: 'Signed Out', description: 'Successfully signed out.' });
     } catch (err) {
-      setError(err as AuthError);
-      toast({ variant: 'destructive', title: 'Sign Out Error', description: (err as AuthError).message });
+      setError(err as SupabaseAuthError);
+      toast({ variant: 'destructive', title: 'Sign Out Error', description: (err as SupabaseAuthError).message });
     } finally {
       setLoading(false);
     }
@@ -108,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     user,
+    session,
     loading,
     error,
     signUpUser,
@@ -118,4 +143,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
