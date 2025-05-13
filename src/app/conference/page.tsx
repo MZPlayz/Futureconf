@@ -9,12 +9,13 @@ import type { ChatMessage, Participant } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut } from 'lucide-react';
+import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { Separator } from '@/components/ui/separator';
 
 
 const initialParticipants: Participant[] = [
@@ -56,6 +57,26 @@ export default function FutureConfPage() {
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [theme, setTheme] = useState('dark');
+
+
+  useEffect(() => {
+    // Theme management
+    const storedTheme = localStorage.getItem('futureconf-theme');
+    if (storedTheme) {
+      setTheme(storedTheme);
+      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+    } else {
+      document.documentElement.classList.toggle('dark', theme === 'dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+    localStorage.setItem('futureconf-theme', newTheme);
+  };
+
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -375,66 +396,84 @@ export default function FutureConfPage() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden antialiased">
       <main className="flex-1 flex flex-col relative">
-        <header className="p-2 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between">
+         <header className="p-1.5 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between shadow-sm">
           <div className="flex items-center space-x-2">
             <Link href="/" passHref>
-                <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors w-7 h-7">
-                  <RadioTower className="w-5 h-5" />
-                </Button>
+              <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors w-7 h-7 rounded-md">
+                      <RadioTower className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs"><p>Dashboard</p></TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </Link>
-            <div className="w-px h-5 bg-border mx-1.5"></div>
-            <h1 className="text-base font-semibold text-foreground tracking-tight">FutureConf</h1>
+            <Separator orientation="vertical" className="h-5" />
+            <h1 className="text-sm font-semibold text-foreground tracking-tight">FutureConf Meeting</h1>
           </div>
-          <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-            <span className="hidden sm:inline">{currentTime}</span>
+          
+          <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+            <span className="hidden sm:inline px-2 py-1 bg-muted rounded-md">{currentTime}</span>
             <TooltipProvider delayDuration={100}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                     <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md" onClick={toggleTheme}>
+                       {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                     </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs"><p>Toggle Theme</p></TooltipContent>
+                </Tooltip>
+
                <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-7 h-7">
+                    <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md">
                       <Zap className="w-3.5 h-3.5 text-yellow-400" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom"><p>AI Features (Soon)</p></TooltipContent>
+                  <TooltipContent side="bottom" className="text-xs"><p>AI Features (Soon)</p></TooltipContent>
                 </Tooltip>
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-7 h-7">
+                    <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md">
                       <Settings2 className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom"><p>Settings (Soon)</p></TooltipContent>
+                  <TooltipContent side="bottom" className="text-xs"><p>Settings (Soon)</p></TooltipContent>
                 </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-7 h-7" onClick={toggleFullScreen}>
-                    <Maximize className="w-3.5 h-3.5" />
+                  <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md" onClick={toggleFullScreen}>
+                    {isFullScreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">
+                <TooltipContent side="bottom" className="text-xs">
                   <p>{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</p>
                 </TooltipContent>
               </Tooltip>
+              <Separator orientation="vertical" className="h-5 mx-1" />
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => handleLogout()}>
-                    <LogOut className="w-3.5 h-3.5 text-red-500" />
+                  <Button variant="ghost" size="icon" className="w-7 h-7 text-red-500 hover:text-red-600 rounded-md" onClick={() => handleLogout()}>
+                    <LogOut className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom"><p>Logout</p></TooltipContent>
+                <TooltipContent side="bottom" className="text-xs"><p>Logout</p></TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </header>
         
         {hasCameraPermission === false && (
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 p-3 w-full max-w-sm">
-              <Alert variant="destructive" className="rounded-md shadow-md">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertTitle>Camera & Mic Access Denied</AlertTitle>
-                  <AlertDescription className="text-xs">
-                      FutureConf needs camera and microphone access. Please enable permissions and refresh.
+          <div className="absolute top-12 left-1/2 -translate-x-1/2 z-10 p-2 w-full max-w-md">
+              <Alert variant="destructive" className="rounded-md shadow-lg text-xs">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <AlertTitle className="text-sm">Camera & Mic Access Denied</AlertTitle>
+                  <AlertDescription>
+                      FutureConf needs camera and microphone access. Please enable permissions in your browser settings and refresh the page.
                   </AlertDescription>
               </Alert>
           </div>
@@ -458,7 +497,7 @@ export default function FutureConfPage() {
         />
       </main>
       {isChatPanelOpen && (
-        <div className="w-full md:w-[280px] lg:w-[300px] xl:w-[320px] h-full flex flex-col border-l border-border bg-card/60 backdrop-blur-sm shadow-lg md:shadow-none">
+        <div className="w-full md:w-[260px] lg:w-[280px] xl:w-[300px] h-full flex flex-col border-l border-border bg-card/50 backdrop-blur-md shadow-xl md:shadow-lg">
            <ChatPanel
             messages={messages}
             smartReplies={smartReplySuggestions}
