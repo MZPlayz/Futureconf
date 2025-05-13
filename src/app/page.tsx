@@ -59,7 +59,7 @@ export default function DashboardPage() {
 
       <GridBackground className="flex-1 flex flex-col">
         {/* Hero Section */}
-        <section 
+        <section
           className="relative flex flex-col items-center justify-center text-center p-3 sm:p-5 md:p-6 flex-grow"
         >
           <div className="relative z-10 max-w-2xl mx-auto">
@@ -86,82 +86,86 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-sm font-medium text-card-foreground">
+              <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
+                <CardContent className="p-4 flex flex-col items-center text-center h-full">
+                  <div className="mb-3 p-3 bg-primary/10 rounded-full text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
+                    <Video className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-base font-semibold text-card-foreground mb-1">
                     New Meeting
                   </CardTitle>
-                  <Video className="h-3.5 w-3.5 text-primary" />
-                </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
+                  <CardDescription className="text-xs text-muted-foreground mb-4 leading-relaxed flex-grow px-2">
                     Launch a new video conference instantly.
                   </CardDescription>
-                  <Link href="/conference" passHref>
+                  <Link href="/conference" passHref className="w-full mt-auto">
                     <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-1.5 rounded-sm text-xs">
                       <Video className="mr-1.5 h-3 w-3" /> Start Meeting
                     </Button>
                   </Link>
                 </CardContent>
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </Card>
 
-              <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-sm font-medium text-card-foreground">
+              <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
+                <CardContent className="p-4 flex flex-col items-center text-center h-full">
+                  <div className="mb-3 p-3 bg-muted/40 rounded-full text-muted-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-base font-semibold text-card-foreground mb-1">
                     Participants Hub
                   </CardTitle>
-                  <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
+                  <CardDescription className="text-xs text-muted-foreground mb-4 leading-relaxed flex-grow px-2">
                     Manage contacts and view participant history (soon).
                   </CardDescription>
-                   <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs" disabled>
+                   <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs mt-auto" disabled>
                     <Users className="mr-1.5 h-3 w-3" /> View Participants
                   </Button>
                 </CardContent>
+                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </Card>
               
-              <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-sm font-medium text-card-foreground">
+              <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
+                <CardContent className="p-4 flex flex-col items-center text-center h-full">
+                  <div className="mb-3 p-3 bg-muted/40 rounded-full text-muted-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
+                    <Settings className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-base font-semibold text-card-foreground mb-1">
                     Account Settings
                   </CardTitle>
-                  <Settings className="h-3.5 w-3.5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
+                  <CardDescription className="text-xs text-muted-foreground mb-4 leading-relaxed flex-grow px-2">
                     Configure your profile and application preferences.
                   </CardDescription>
-                  <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs" disabled>
+                  <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs mt-auto" disabled>
                     <Settings className="mr-1.5 h-3 w-3" /> Go to Settings
                   </Button>
                 </CardContent>
+                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </Card>
 
-               <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-sm hover:shadow-primary/10 transition-all duration-300 ease-in-out transform hover:-translate-y-px">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 p-3">
-                  <CardTitle className="text-sm font-medium text-card-foreground">
+               <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
+                <CardContent className="p-4 flex flex-col items-center text-center h-full">
+                 <div className="mb-3 p-3 bg-primary/10 rounded-full text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
+                    <Sparkles className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-base font-semibold text-card-foreground mb-1">
                     Explore Features
                   </CardTitle>
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                </CardHeader>
-                <CardContent className="p-3 pt-1">
-                  <CardDescription className="text-xs text-muted-foreground mb-2.5">
+                  <CardDescription className="text-xs text-muted-foreground mb-4 leading-relaxed flex-grow px-2">
                     Discover new tools and upcoming enhancements.
                   </CardDescription>
-                   <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs" disabled>
-                    Learn More
+                   <Button variant="outline" size="sm" className="w-full py-1.5 rounded-sm text-xs mt-auto" disabled>
+                     <Sparkles className="mr-1.5 h-3 w-3" /> Learn More
                   </Button>
                 </CardContent>
+                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-primary/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
               </Card>
             </div>
           </div>
         </section>
 
         {/* Activity Feed Section */}
-        <section 
-          className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[40vh]"
+        <section
+          className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[30vh] pb-10 sm:pb-12 md:pb-16" // Adjusted min-height and padding
         >
           <div className="relative z-10 max-w-2xl mx-auto w-full">
             <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-md w-full">
@@ -183,4 +187,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
