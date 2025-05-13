@@ -9,7 +9,7 @@ import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDow
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import GridBackground from '@/components/ui/grid-background';
-import { ActivityChart } from '@/components/dashboard/activity-chart'; // Added import
+import { ActivityChart } from '@/components/dashboard/activity-chart';
 
 export default function DashboardPage() {
   const { user, loading, signOutUser } = useAuth();
@@ -169,7 +169,7 @@ export default function DashboardPage() {
           className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[30vh] pb-10 sm:pb-12 md:pb-16"
         >
           <div className="relative z-10 max-w-2xl mx-auto w-full">
-            <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-md w-full">
+            <Card className="rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm shadow-md w-full">
               <CardHeader className="p-4">
                 <CardTitle className="text-base font-semibold text-card-foreground text-center">Activity Feed</CardTitle>
                 <CardDescription className="text-xs text-center text-muted-foreground">Your recent platform engagement.</CardDescription>
@@ -188,3 +188,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+
