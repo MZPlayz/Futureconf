@@ -28,15 +28,15 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="flex-1 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto">
+      <main className="flex-1 p-6 sm:p-8 md:p-10 lg:p-12 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
+          <div className="mb-10">
             <h2 className="text-3xl font-bold tracking-tight text-foreground">Welcome Back!</h2>
             <p className="text-muted-foreground">Here's an overview of your FutureConf space.</p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            <Card className="shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out rounded-lg border-border">
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <Card className="rounded-lg border-border shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-semibold text-foreground">
                   New Meeting
@@ -55,7 +55,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out rounded-lg border-border">
+            <Card className="rounded-lg border-border shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-semibold text-foreground">
                   Participants Hub
@@ -72,7 +72,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
             
-            <Card className="shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out rounded-lg border-border">
+            <Card className="rounded-lg border-border shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-semibold text-foreground">
                   Account Settings
@@ -89,7 +89,7 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
 
-             <Card className="shadow-md hover:shadow-lg transition-shadow duration-200 ease-in-out rounded-lg border-border">
+             <Card className="rounded-lg border-border shadow-sm hover:shadow-md transition-shadow duration-200 ease-in-out">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-base font-semibold text-foreground">
                   Explore Features
@@ -108,12 +108,12 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-12">
-            <Card className="shadow-md rounded-lg border-border">
+            <Card className="rounded-lg border-border shadow-sm">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold text-foreground">Activity Feed</CardTitle>
                 <CardDescription>Recent activities and notifications (placeholder).</CardDescription>
               </CardHeader>
-              <CardContent className="h-48 flex items-center justify-center">
+              <CardContent className="h-32 flex items-center justify-center">
                 <p className="text-muted-foreground">No recent activity.</p>
               </CardContent>
             </Card>
