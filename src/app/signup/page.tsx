@@ -46,9 +46,9 @@ export default function SignUpPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-card p-4">
-       <div className="mb-8 flex items-center space-x-3">
-        <RadioTower className="h-12 w-12 text-primary" />
-        <h1 className="text-4xl font-bold text-foreground">FutureConf</h1>
+       <div className="mb-6 flex items-center space-x-2"> {/* Reduced mb, space-x */}
+        <RadioTower className="h-8 w-8 text-primary" /> {/* Reduced size */}
+        <h1 className="text-3xl font-bold text-foreground">FutureConf</h1> {/* Reduced size */}
       </div>
       <AuthForm 
         isSignUp 
@@ -59,4 +59,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-

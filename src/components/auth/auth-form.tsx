@@ -14,7 +14,7 @@ import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
 
 const GoogleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="20px" height="20px">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18px" height="18px"> {/* Reduced size */}
     <path fill="#EA4335" d="M24 9.5c3.405 0 6.003 1.153 7.999 3.024l5.966-5.966C34.33 3.291 29.715 1.5 24 1.5c-6.627 0-12.327 3.915-14.999 9.818l7.159 5.522C17.927 12.475 20.718 9.5 24 9.5z"/>
     <path fill="#4285F4" d="M46.5 24c0-1.653-.146-3.246-.422-4.781H24v9.026h12.839c-.561 3.068-2.258 5.617-4.818 7.377l7.122 5.504C43.348 37.438 46.5 31.261 46.5 24z"/>
     <path fill="#FBBC05" d="M9.001 28.621c-.504-1.522-.789-3.142-.789-4.833s.285-3.311.789-4.833L1.842 13.45C.663 16.451 0 19.995 0 23.788s.663 7.337 1.842 10.338l7.159-5.505z"/>
@@ -54,63 +54,63 @@ export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, loading }
   const linkHref = isSignUp ? '/login' : '/signup';
 
   return (
-    <Card className="w-full max-w-md shadow-xl bg-card/90 backdrop-blur-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-3xl font-bold text-primary">{title}</CardTitle>
-        <CardDescription className="text-muted-foreground">{description}</CardDescription>
+    <Card className="w-full max-w-sm shadow-xl bg-card/90 backdrop-blur-sm"> {/* Changed max-w-md to max-w-sm */}
+      <CardHeader className="text-center pb-4"> {/* Reduced pb */}
+        <CardTitle className="text-2xl font-bold text-primary">{title}</CardTitle> {/* Reduced text-3xl to text-2xl */}
+        <CardDescription className="text-sm text-muted-foreground">{description}</CardDescription> {/* Ensured text-sm */}
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-foreground/80">Email</Label>
+      <CardContent className="pt-0 pb-4"> {/* Adjusted padding */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
+          <div className="space-y-1.5"> {/* Reduced space-y-2 */}
+            <Label htmlFor="email" className="text-foreground/80 text-xs">Email</Label> {/* text-xs */}
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> {/* Reduced size and adjusted position */}
               <Input
                 id="email"
                 type="email"
                 placeholder="you@example.com"
-                className="pl-10 bg-input border-border focus:border-primary"
+                className="pl-8 text-sm bg-input border-border focus:border-primary h-9" /* Reduced padding and height */
                 {...register('email')}
                 disabled={loading}
               />
             </div>
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>} {/* text-xs */}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground/80">Password</Label>
+          <div className="space-y-1.5">  {/* Reduced space-y-2 */}
+            <Label htmlFor="password" className="text-foreground/80 text-xs">Password</Label> {/* text-xs */}
              <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <Lock className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> {/* Reduced size and adjusted position */}
               <Input
                 id="password"
                 type="password"
                 placeholder="••••••••"
-                className="pl-10 bg-input border-border focus:border-primary"
+                className="pl-8 text-sm bg-input border-border focus:border-primary h-9" /* Reduced padding and height */
                 {...register('password')}
                 disabled={loading}
               />
             </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password.message}</p>}
+            {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>} {/* text-xs */}
           </div>
-          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-3 text-base font-semibold rounded-md" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : buttonText}
+          <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-2 text-sm font-semibold rounded-md" disabled={loading}> {/* Reduced py-3 to py-2, text-base to text-sm */}
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : buttonText} {/* Reduced icon size */}
           </Button>
         </form>
 
         {onGoogleSignIn && (
           <>
-            <div className="my-6 flex items-center">
+            <div className="my-4 flex items-center"> {/* Reduced my-6 to my-4 */}
               <Separator className="flex-grow" />
-              <span className="mx-4 text-xs text-muted-foreground">OR</span>
+              <span className="mx-3 text-xs text-muted-foreground">OR</span> {/* Reduced mx */}
               <Separator className="flex-grow" />
             </div>
             <Button
               variant="outline"
-              className="w-full py-3 text-base font-semibold rounded-md border-border hover:bg-accent"
+              className="w-full py-2 text-sm font-semibold rounded-md border-border hover:bg-accent" /* Reduced py-3 to py-2, text-base to text-sm */
               onClick={onGoogleSignIn}
               disabled={loading}
             >
               {loading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> /* Reduced icon size */
               ) : (
                 <>
                   <GoogleIcon /> 
@@ -121,9 +121,9 @@ export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, loading }
           </>
         )}
       </CardContent>
-      <CardFooter className="flex justify-center pt-6">
+      <CardFooter className="flex justify-center pt-4 pb-4"> {/* Adjusted padding */}
         <Link href={linkHref} passHref>
-          <Button variant="link" className="text-sm text-primary hover:text-primary/80">
+          <Button variant="link" className="text-xs text-primary hover:text-primary/80"> {/* text-xs */}
             {linkText}
           </Button>
         </Link>
@@ -131,4 +131,3 @@ export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, loading }
     </Card>
   );
 }
-

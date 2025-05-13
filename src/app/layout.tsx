@@ -1,18 +1,15 @@
 
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google'; // Changed from Geist and Geist_Mono
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from '@/contexts/auth-context';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+// Initialize JetBrains Mono
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains-mono',
   subsets: ['latin'],
-});
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+  weight: ['400', '700'] // Adjust weights as needed
 });
 
 export const metadata: Metadata = {
@@ -27,7 +24,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-full bg-background text-foreground`}>
+      {/* Applied JetBrains Mono to the body */}
+      <body className={`${jetbrainsMono.variable} font-sans antialiased h-full bg-background text-foreground`}>
         <AuthProvider>
           {children}
           <Toaster />
