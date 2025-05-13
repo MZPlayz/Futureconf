@@ -1,12 +1,37 @@
+
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioTower, Video, Users, Settings, Sparkles } from 'lucide-react';
+import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
+  const { user, loading, signOutUser } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
+
+  const handleLogout = async () => {
+    await signOutUser();
+    router.push('/login');
+  };
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground antialiased">
       <header className="p-4 border-b border-border flex-shrink-0 bg-card shadow-sm sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
@@ -17,13 +42,17 @@ export default function DashboardPage() {
               FutureConf <span className="font-light text-primary/90">Dashboard</span>
             </h1>
           </div>
-          <div>
+          <div className="flex items-center space-x-4">
             <Link href="/conference" passHref>
               <Button variant="outline" className="font-medium rounded-md">
                 <Video className="mr-2 h-4 w-4" />
                 Join Conference
               </Button>
             </Link>
+            <Button variant="ghost" onClick={handleLogout} className="font-medium rounded-md text-muted-foreground hover:text-primary">
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </Button>
           </div>
         </div>
       </header>
@@ -31,7 +60,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-6 sm:p-8 md:p-10 lg:p-12 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">Welcome Back!</h2>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">Welcome Back, {user.email}!</h2>
             <p className="text-muted-foreground">Here's an overview of your FutureConf space.</p>
           </div>
 

@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -8,15 +9,17 @@ import type { ChatMessage, Participant } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, RadioTower, Maximize, Zap, Settings2 } from 'lucide-react';
+import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 
 const initialParticipants: Participant[] = [
   { id: 'p1', name: 'Alice', avatar: 'https://picsum.photos/seed/alice-conf/200/200', isHost: true, isSpeaking: false, dataAiHint: 'woman smiling', isLocal: false },
-  { id: 'p2', name: 'You', avatar: 'https://picsum.photos/seed/you-conf/200/200', isHost: false, isSpeaking: true, dataAiHint: 'person happy', isLocal: true },
+  // You will be added dynamically based on auth user
   { id: 'p3', name: 'Bob', avatar: 'https://picsum.photos/seed/bob-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'man thinking', isLocal: false },
   { id: 'p4', name: 'Charlie', avatar: 'https://picsum.photos/seed/charlie-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'person glasses', isLocal: false },
   { id: 'p5', name: 'Diana', avatar: 'https://picsum.photos/seed/diana-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'woman nature', isLocal: false },
@@ -25,18 +28,21 @@ const initialParticipants: Participant[] = [
 const initialMessages: ChatMessage[] = [
   { id: '1', sender: 'Alice', text: 'Hey everyone, welcome to FutureConf!', timestamp: new Date(Date.now() - 1000 * 60 * 5), isOwn: false, avatar: 'https://picsum.photos/seed/alice-chat/40/40', },
   { id: '2', sender: 'Bob', text: 'Hi Alice! Glad to be here.', timestamp: new Date(Date.now() - 1000 * 60 * 4), isOwn: false, avatar: 'https://picsum.photos/seed/bob-chat/40/40' },
-  { id: '3', sender: 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: 'https://picsum.photos/seed/you-chat/40/40' },
+  // Your messages will be added dynamically
   { id: '4', sender: 'Charlie', text: 'Can everyone hear me okay?', timestamp: new Date(Date.now() - 1000 * 60 * 2), isOwn: false, avatar: 'https://picsum.photos/seed/charlie-chat/40/40' },
 ];
 
 export default function FutureConfPage() {
+  const { user, loading: authLoading, signOutUser } = useAuth();
+  const router = useRouter();
+
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [currentMessage, setCurrentMessage] = useState('');
   const [smartReplySuggestions, setSmartReplySuggestions] = useState<string[]>([]);
   const [isSmartRepliesLoading, setIsSmartRepliesLoading] = useState(false);
   
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(true);
-  const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
+  const [participants, setParticipants] = useState<Participant[]>([]);
   
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false); 
@@ -50,6 +56,40 @@ export default function FutureConfPage() {
   const { toast } = useToast();
   const [currentTime, setCurrentTime] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    } else if (user) {
+      // Initialize local participant
+      const localParticipant: Participant = {
+        id: user.uid,
+        name: 'You', // Or user.displayName || user.email?.split('@')[0] || 'You'
+        avatar: `https://picsum.photos/seed/${user.uid}/200/200`,
+        isHost: false,
+        isSpeaking: true, // Example, should be based on actual activity
+        dataAiHint: 'person happy',
+        isLocal: true,
+        isVideoEnabled: false, // Initially off
+        isMuted: false, // Initially unmuted
+      };
+      setParticipants([localParticipant, ...initialParticipants.filter(p => !p.isLocal)]);
+      
+      // Add an initial message from "You" if desired
+      setMessages(prev => {
+        const userMessageExists = prev.some(m => m.sender === "You");
+        if (!userMessageExists) {
+          return [
+            ...prev,
+            { id: '3', sender: 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: `https://picsum.photos/seed/${user.uid}/40/40` }
+          ].sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
+        }
+        return prev;
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, authLoading, router]);
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -69,17 +109,22 @@ export default function FutureConfPage() {
       }
     }
   };
+  
+  const handleLogout = async () => {
+    handleEndCall(true); // End call and then sign out
+  };
 
   useEffect(() => {
     let isMounted = true;
     const getCameraPermission = async () => {
-      if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices && user) { // Check for user
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
           if (isMounted) {
             setLocalCameraStream(stream);
             setHasCameraPermission(true);
             setIsVideoEnabled(true);
+            setIsMuted(false); // Unmute by default when camera is on
             setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: true, isMuted: false } : p));
           }
         } catch (error) {
@@ -94,7 +139,7 @@ export default function FutureConfPage() {
             });
           }
         }
-      } else {
+      } else if(user) { // Check for user
         if (isMounted) {
           setHasCameraPermission(false); 
           console.warn("navigator.mediaDevices is not available.")
@@ -102,7 +147,9 @@ export default function FutureConfPage() {
       }
     };
 
-    getCameraPermission();
+    if (user) { // Only get permission if user is logged in
+      getCameraPermission();
+    }
 
     const handleFullScreenChange = () => {
       setIsFullScreen(!!document.fullscreenElement);
@@ -120,26 +167,26 @@ export default function FutureConfPage() {
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast]);
+  }, [toast, user]); // Add user dependency
 
 
   const handleSendMessage = useCallback((text: string) => {
-    if (text.trim() === '') return;
+    if (text.trim() === '' || !user) return;
     const newMessage: ChatMessage = {
       id: String(Date.now()),
-      sender: 'You',
+      sender: 'You', // Or user.displayName or email
       text,
       timestamp: new Date(),
       isOwn: true,
-      avatar: 'https://picsum.photos/seed/you-chat/40/40'
+      avatar: `https://picsum.photos/seed/${user.uid}/40/40`
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setCurrentMessage('');
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (messages.length === 0 || !isChatPanelOpen) {
+      if (messages.length === 0 || !isChatPanelOpen || !user) { // Check for user
         setSmartReplySuggestions([]);
         return;
       }
@@ -164,7 +211,7 @@ export default function FutureConfPage() {
 
     const timer = setTimeout(fetchSuggestions, 500); // Debounce
     return () => clearTimeout(timer);
-  }, [messages, isChatPanelOpen, toast]);
+  }, [messages, isChatPanelOpen, toast, user]); // Add user dependency
 
   const handleSmartReplyClick = (reply: string) => {
     setCurrentMessage(reply);
@@ -173,6 +220,7 @@ export default function FutureConfPage() {
   const toggleChatPanel = () => setIsChatPanelOpen(prev => !prev);
 
   const handleMuteToggle = () => {
+    if (!user) return; // Check for user
     const newIsMuted = !isMuted;
     setIsMuted(newIsMuted); 
 
@@ -187,6 +235,7 @@ export default function FutureConfPage() {
   };
 
   const handleVideoToggle = async () => {
+    if (!user) return; // Check for user
     const newIsVideoEnabled = !isVideoEnabled;
     
     if (newIsVideoEnabled) {
@@ -195,7 +244,7 @@ export default function FutureConfPage() {
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 setLocalCameraStream(stream);
                 setHasCameraPermission(true);
-                stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+                stream.getAudioTracks().forEach(track => track.enabled = !isMuted); // Respect current mute state
             } catch (error) {
                 console.error('Error accessing camera:', error);
                 setHasCameraPermission(false);
@@ -216,6 +265,7 @@ export default function FutureConfPage() {
   };
   
   const handleScreenShareToggle = async () => {
+    if (!user) return; // Check for user
     const newIsScreenSharing = !isScreenSharing;
     const youParticipant = participants.find(p => p.isLocal);
 
@@ -262,13 +312,21 @@ export default function FutureConfPage() {
     }
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async (isLoggingOut = false) => {
     localCameraStream?.getTracks().forEach(track => track.stop());
     localScreenStream?.getTracks().forEach(track => track.stop());
     setLocalCameraStream(null);
     setLocalScreenStream(null);
-    toast({ title: 'Call Ended', description: 'You have left the meeting.' });
     
+    if (isLoggingOut) {
+      await signOutUser();
+      router.push('/login');
+    } else {
+      toast({ title: 'Call Ended', description: 'You have left the meeting.' });
+      router.push('/'); // Go to dashboard after ending call
+    }
+    
+    // Reset state - might not be fully necessary if redirecting, but good practice
     setMessages([]);
     setParticipants(initialParticipants.map(p => {
       const baseParticipant = {...p, mediaStream: null, isVideoEnabled: false, isMuted: false, isScreenSharing: false};
@@ -281,7 +339,6 @@ export default function FutureConfPage() {
     setIsMuted(true); 
     setIsScreenSharing(false);
     setHasCameraPermission(null); 
-    
   };
 
   const processedParticipants = participants.map(p => {
@@ -303,12 +360,19 @@ export default function FutureConfPage() {
             isScreenSharing: isCurrentlyScreenSharing,
         };
     }
-    
-    if(p.id === 'p1') return {...p, isVideoEnabled: true, mediaStream: null} 
-    if(p.id === 'p3') return {...p, isVideoEnabled: false, mediaStream: null} 
+    // Simulate other participants' video status (can be more dynamic in a real app)
+    if(p.id === 'p1') return {...p, isVideoEnabled: true, mediaStream: null } 
+    if(p.id === 'p3') return {...p, isVideoEnabled: false, mediaStream: null } 
     return {...p, mediaStream: null}; 
   });
 
+  if (authLoading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden antialiased">
@@ -316,7 +380,9 @@ export default function FutureConfPage() {
         <header className="p-3 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Link href="/" passHref>
-                <RadioTower className="w-6 h-6 text-primary hover:text-primary/80 transition-colors" />
+                <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors">
+                  <RadioTower className="w-6 h-6" />
+                </Button>
             </Link>
             <div className="w-px h-6 bg-border mx-2"></div>
             <h1 className="text-lg font-semibold text-foreground tracking-tight">FutureConf</h1>
@@ -352,6 +418,14 @@ export default function FutureConfPage() {
                   <p>{isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}</p>
                 </TooltipContent>
               </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleLogout()}>
+                    <LogOut className="w-4 h-4 text-red-500" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>Logout</p></TooltipContent>
+              </Tooltip>
             </TooltipProvider>
           </div>
         </header>
@@ -380,7 +454,7 @@ export default function FutureConfPage() {
             onMuteToggle={handleMuteToggle}
             onVideoToggle={handleVideoToggle}
             onScreenShareToggle={handleScreenShareToggle}
-            onEndCall={handleEndCall}
+            onEndCall={() => handleEndCall(false)}
             onChatToggle={toggleChatPanel}
             hasCameraPermission={hasCameraPermission}
         />
