@@ -17,7 +17,7 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
   children,
   className,
   gridColor = 'hsl(var(--border) / 0.6)', // Increased alpha for more visibility (0.2 + 0.4 = 0.6)
-  glowColor = 'hsl(var(--primary) / 0.1)', 
+  glowColor = 'hsl(var(--foreground) / 0.05)', // Changed to off-white glow
   glowSize = '500px',
   gridSize = '30px', 
 }) => {
@@ -104,4 +104,5 @@ const GridBackground: React.FC<GridBackgroundProps> = ({
 };
 
 export default GridBackground;
+
 
