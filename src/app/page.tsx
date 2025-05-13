@@ -9,6 +9,7 @@ import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDow
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import GridBackground from '@/components/ui/grid-background';
+import { ActivityChart } from '@/components/dashboard/activity-chart'; // Added import
 
 export default function DashboardPage() {
   const { user, loading, signOutUser } = useAuth();
@@ -62,11 +63,11 @@ export default function DashboardPage() {
         <section
           className="relative flex flex-col items-center justify-center text-center p-3 sm:p-5 md:p-6 flex-grow"
         >
-          <div className="relative z-10 max-w-2xl"> {/* Removed mx-auto */}
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5 text-center"> {/* Added text-center */}
+          <div className="relative z-10 max-w-2xl">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5 text-center">
               Welcome Back, <span className="text-primary">{user.email?.split('@')[0]}!</span>
             </h2>
-            <p className="text-base sm:text-lg text-muted-foreground mb-6 text-center"> {/* Added text-center */}
+            <p className="text-base sm:text-lg text-muted-foreground mb-6 text-center">
               Experience the future of collaboration. Seamless, intelligent, and built for you.
             </p>
             <Button size="lg" variant="outline" className="bg-transparent border-primary text-primary hover:bg-primary hover:text-primary-foreground text-base px-6 py-2.5 rounded-md transition-all duration-300 ease-in-out transform hover:scale-105" onClick={() => document.getElementById('dashboard-content')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -165,16 +166,16 @@ export default function DashboardPage() {
 
         {/* Activity Feed Section */}
         <section
-          className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[30vh] pb-10 sm:pb-12 md:pb-16" // Adjusted min-height and padding
+          className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[30vh] pb-10 sm:pb-12 md:pb-16"
         >
           <div className="relative z-10 max-w-2xl mx-auto w-full">
             <Card className="rounded-lg border border-border/50 bg-card/60 backdrop-blur-sm shadow-md w-full">
               <CardHeader className="p-4">
                 <CardTitle className="text-base font-semibold text-card-foreground text-center">Activity Feed</CardTitle>
-                <CardDescription className="text-xs text-center text-muted-foreground">Recent activities and notifications (placeholder).</CardDescription>
+                <CardDescription className="text-xs text-center text-muted-foreground">Your recent platform engagement.</CardDescription>
               </CardHeader>
-              <CardContent className="p-4 pt-0 h-28 flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">No recent activity.</p>
+              <CardContent className="p-4 pt-0 min-h-[280px] lg:min-h-[300px]">
+                <ActivityChart />
               </CardContent>
             </Card>
           </div>
@@ -187,4 +188,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
