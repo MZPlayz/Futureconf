@@ -4,32 +4,32 @@
 
 @layer base {
   :root {
-    --background: 220 20% 5%; /* Very dark desaturated blue */
-    --foreground: 210 40% 98%; /* Almost white, cool tone */
+    --background: 240 5% 11%; /* #1A1A1D - Dark Desaturated Blue/Grey */
+    --foreground: 240 5% 95%; /* Very Light Grey/Almost White */
 
-    --card: 220 20% 10%; /* Slightly lighter dark blue for cards */
-    --card-foreground: 210 40% 98%; /* Almost white for card text */
+    --card: 240 5% 14%; /* Slightly Lighter Dark Blue/Grey for Cards */
+    --card-foreground: 240 5% 95%; /* Very Light Grey for card text */
 
-    --popover: 220 20% 7%; /* Darker popover background */
-    --popover-foreground: 210 40% 98%; /* Almost white for popover text */
+    --popover: 240 5% 9%; /* Darker Popover Background */
+    --popover-foreground: 240 5% 95%; /* Very Light Grey for popover text */
 
     --primary: 33 100% 65%; /* Light Orange */
     --primary-foreground: 33 30% 10%; /* Dark brown for primary text */
 
-    --secondary: 210 15% 25%; /* Muted cool gray */
-    --secondary-foreground: 210 30% 80%; /* Lighter muted gray */
+    --secondary: 240 4% 25%; /* Muted Desaturated Blue/Grey */
+    --secondary-foreground: 240 4% 80%; /* Lighter version for text */
 
-    --muted: 210 15% 20%; /* Darker muted cool gray */
-    --muted-foreground: 210 25% 70%; /* Muted gray text */
+    --muted: 240 4% 20%; /* Darker Muted Desaturated Blue/Grey */
+    --muted-foreground: 240 4% 65%; /* Muted text on muted background */
 
     --accent: 180 50% 60%; /* Lighter Teal Accent */
-    --accent-foreground: 220 20% 5%; /* Dark text for accent elements */
+    --accent-foreground: 220 20% 5%; /* Dark text for accent elements (can be dark teal or very dark grey) */
 
     --destructive: 0 70% 55%; /* Brighter red for destructive actions */
     --destructive-foreground: 0 0% 98%; /* Light text for destructive */
 
-    --border: 210 15% 20%; /* Dark cool gray border */
-    --input: 210 15% 20%; /* Dark cool gray input background */
+    --border: 240 5% 18%; /* Slightly lighter grey-blue border */
+    --input: 240 5% 18%; /* Input background, same as border or card */
     --ring: 33 100% 70%; /* Light Orange ring, slightly brighter than primary */
     
     --chart-1: 33 100% 70%; /* Light Orange shades for charts */
@@ -40,13 +40,13 @@
     --radius: 0.5rem;
 
     /* Sidebar variables - Dark Theme */
-    --sidebar-background: 220 20% 8%; /* Slightly darker than main dark bg */
-    --sidebar-foreground: 210 40% 95%; /* Light cool gray for sidebar text */
+    --sidebar-background: 240 5% 10%; /* Slightly darker than main bg or similar to popover */
+    --sidebar-foreground: 240 5% 90%; /* Light cool gray for sidebar text */
     --sidebar-primary: 33 100% 65%; /* Light Orange for sidebar primary elements */
     --sidebar-primary-foreground: 33 30% 10%; /* Dark brown for sidebar primary text */
-    --sidebar-accent: 220 20% 15%; /* Subtle dark accent for sidebar */
-    --sidebar-accent-foreground: 180 60% 55%; /* Primary (Teal) color for text on sidebar accent hover - Note: consider changing if accent itself changes */
-    --sidebar-border: 220 15% 18%; /* Softer border for dark sidebar */
+    --sidebar-accent: 240 5% 15%; /* Subtle dark accent for sidebar */
+    --sidebar-accent-foreground: 33 100% 65%; /* Primary (Light Orange) for text on sidebar accent hover */
+    --sidebar-border: 240 5% 17%; /* Softer border for dark sidebar */
     --sidebar-ring: 33 100% 70%; /* Light Orange ring for dark sidebar */
   }
 }
