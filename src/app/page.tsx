@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle } from 'lucide-react';
+import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, LayoutDashboard, MessageSquare, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import GridBackground from '@/components/ui/grid-background';
@@ -55,6 +55,23 @@ export default function DashboardPage() {
             </h1>
           </div>
 
+          {/* Navigation Links - Centered */}
+          <nav className="hidden md:flex items-center space-x-3">
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+              <LayoutDashboard className="mr-1.5 h-3.5 w-3.5" /> Overview
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground" disabled>
+              <Video className="mr-1.5 h-3.5 w-3.5" /> My Meetings (Soon)
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground" disabled>
+              <MessageSquare className="mr-1.5 h-3.5 w-3.5" /> Chat History (Soon)
+            </Button>
+            <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground" disabled>
+              <BarChart3 className="mr-1.5 h-3.5 w-3.5" /> Analytics (Soon)
+            </Button>
+          </nav>
+
+
           {/* Right Side: Actions */}
           <div className="flex items-center space-x-3">
             <Link href="/conference" passHref>
@@ -100,10 +117,10 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <GridBackground className="flex-1 flex flex-col">
+      <GridBackground className="flex-1 flex flex-col overflow-y-auto">
         {/* Hero Section */}
         <section
-          className="relative flex flex-col items-center justify-center text-center p-3 sm:p-5 md:p-6 flex-grow"
+          className="relative flex flex-col items-center justify-center text-center p-6 sm:p-10 md:p-16 flex-grow min-h-[70vh]"
         >
           <div className="relative z-10 max-w-2xl">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5 text-center">
@@ -230,4 +247,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
