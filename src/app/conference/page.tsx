@@ -19,20 +19,11 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 
-const initialParticipants: Participant[] = [
-  { id: 'p1', name: 'Alice', avatar: 'https://picsum.photos/seed/alice-conf/200/200', isHost: true, isSpeaking: false, dataAiHint: 'woman smiling', isLocal: false },
-  // You will be added dynamically based on auth user
-  { id: 'p3', name: 'Bob', avatar: 'https://picsum.photos/seed/bob-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'man thinking', isLocal: false },
-  { id: 'p4', name: 'Charlie', avatar: 'https://picsum.photos/seed/charlie-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'person glasses', isLocal: false },
-  { id: 'p5', name: 'Diana', avatar: 'https://picsum.photos/seed/diana-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'woman nature', isLocal: false },
-];
+// No initial participants, they will be added dynamically or it's just the local user.
+const initialParticipants: Participant[] = [];
 
-const initialMessages: ChatMessage[] = [
-  { id: '1', sender: 'Alice', text: 'Hey everyone, welcome to FutureConf!', timestamp: new Date(Date.now() - 1000 * 60 * 5), isOwn: false, avatar: 'https://picsum.photos/seed/alice-chat/40/40', },
-  { id: '2', sender: 'Bob', text: 'Hi Alice! Glad to be here.', timestamp: new Date(Date.now() - 1000 * 60 * 4), isOwn: false, avatar: 'https://picsum.photos/seed/bob-chat/40/40' },
-  // Your messages will be added dynamically
-  { id: '4', sender: 'Charlie', text: 'Can everyone hear me okay?', timestamp: new Date(Date.now() - 1000 * 60 * 2), isOwn: false, avatar: 'https://picsum.photos/seed/charlie-chat/40/40' },
-];
+// No initial messages, chat starts empty.
+const initialMessages: ChatMessage[] = [];
 
 export default function FutureConfPage() {
   const { user, loading: authLoading, signOutUser } = useAuth();
@@ -44,7 +35,7 @@ export default function FutureConfPage() {
   const [isSmartRepliesLoading, setIsSmartRepliesLoading] = useState(false);
   
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(true);
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
   
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false); 
@@ -90,25 +81,25 @@ export default function FutureConfPage() {
         id: user.id, 
         name: user.email?.split('@')[0] || 'You',
         avatar: `https://picsum.photos/seed/${user.id}/200/200`, 
-        isHost: false,
-        isSpeaking: true, 
+        isHost: true, // The first user to join/create a meeting can be host
+        isSpeaking: false, 
         dataAiHint: 'person happy',
         isLocal: true,
         isVideoEnabled: false, 
         isMuted: false, 
       };
-      setParticipants([localParticipant, ...initialParticipants.filter(p => !p.isLocal)]);
-      
-      setMessages(prev => {
-        const userMessageExists = prev.some(m => m.sender === (user.email?.split('@')[0] || 'You'));
-        if (!userMessageExists) {
-          return [
-            ...prev,
-            { id: '3', sender: user.email?.split('@')[0] || 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: `https://picsum.photos/seed/${user.id}/40/40` } 
-          ].sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
+      // If participants list is empty (e.g. from initialParticipants), add the local user.
+      // If it already contains participants (e.g. due to re-render or other logic), ensure local user is primary.
+      setParticipants(prev => {
+        const existingLocal = prev.find(p => p.isLocal);
+        if (existingLocal) {
+          return prev.map(p => p.isLocal ? {...localParticipant, ...p } : p); // Update existing local
         }
-        return prev;
+        return [localParticipant, ...prev.filter(p => !p.isLocal)]; // Add new local
       });
+      
+      // Messages should start empty for a new meeting
+      setMessages([]); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, authLoading, router]);
@@ -349,18 +340,18 @@ export default function FutureConfPage() {
       router.push('/'); 
     }
     
-    setMessages([]);
-    setParticipants(initialParticipants.map(p => {
-      const baseParticipant = {...p, mediaStream: null, isVideoEnabled: false, isMuted: false, isScreenSharing: false};
-      if (p.isLocal) {
-        // This part might be cleared by onAuthStateChange if logging out
-        return {...baseParticipant, isVideoEnabled: false, isMuted: true}; 
-      }
-      return baseParticipant;
-    }));
+    setMessages([]); // Clear messages on end call
+    setParticipants(prev => prev.filter(p => p.isLocal).map(p => ({ // Keep only local, reset state
+        ...p, 
+        mediaStream: null, 
+        isVideoEnabled: false, 
+        isMuted: true, // Mute local user on end call
+        isScreenSharing: false
+    })));
     setIsVideoEnabled(false);
     setIsMuted(true); 
     setIsScreenSharing(false);
+    setScreenSharingParticipantId(null);
     setHasCameraPermission(null); 
   };
 
@@ -383,9 +374,10 @@ export default function FutureConfPage() {
             isScreenSharing: isCurrentlyScreenSharing,
         };
     }
-    // Simulate other participants' video status 
-    if(p.id === 'p1') return {...p, isVideoEnabled: true, mediaStream: null } 
-    if(p.id === 'p3') return {...p, isVideoEnabled: false, mediaStream: null } 
+    // For non-local participants, their state (isVideoEnabled, mediaStream) would
+    // typically be managed by a signaling server in a real application.
+    // Since we removed initialParticipants, this map will mainly process the local user.
+    // If other participants were to be added via a backend, their properties would be set there.
     return {...p, mediaStream: null}; 
   });
 
@@ -562,3 +554,4 @@ export default function FutureConfPage() {
     </div>
   );
 }
+

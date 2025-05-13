@@ -20,3 +20,12 @@ export interface ChatMessage {
   isOwn: boolean;
   avatar?: string;
 }
+
+export interface Meeting {
+  id: string;
+  name: string;
+  status: 'upcoming' | 'running' | 'ended';
+  createdAt: Date;
+  participantIds?: string[]; // IDs of participants in this meeting
+  // Add other relevant meeting details here, e.g., scheduledTime, createdByUserId
+}

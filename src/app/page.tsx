@@ -1,11 +1,11 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, LayoutDashboard, MessageSquare, BarChart3, Users2 } from 'lucide-react';
+import { RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, LayoutDashboard, MessageSquare, BarChart3, Users2, CalendarDays, PlusCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import GridBackground from '@/components/ui/grid-background';
@@ -20,16 +20,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import type { Meeting } from '@/types';
 
 
 export default function DashboardPage() {
   const { user, loading, signOutUser } = useAuth();
   const router = useRouter();
+  const [meetings, setMeetings] = useState<Meeting[]>([]); // Placeholder for meetings
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
     }
+    // In a real app, fetch meetings for the user here
+    // For now, it's an empty array
   }, [user, loading, router]);
 
   const handleLogout = async () => {
@@ -78,12 +82,12 @@ export default function DashboardPage() {
                     variant="ghost" 
                     size="icon" 
                     className="text-muted-foreground hover:text-primary h-8 w-8 rounded-md transition-all duration-200 hover:shadow-[0_0_12px_hsl(var(--primary)/0.4)]" 
-                    disabled
+                    onClick={() => document.getElementById('my-meetings-section')?.scrollIntoView({ behavior: 'smooth' })}
                   >
                     <Video className="h-5 w-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs"><p>My Meetings (Soon)</p></TooltipContent>
+                <TooltipContent side="bottom" className="text-xs"><p>My Meetings</p></TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -117,12 +121,12 @@ export default function DashboardPage() {
                     variant="ghost" 
                     size="icon" 
                     className="text-muted-foreground hover:text-primary h-8 w-8 rounded-md transition-all duration-200 hover:shadow-[0_0_12px_hsl(var(--primary)/0.4)]" 
-                    disabled
+                     onClick={() => document.getElementById('activity-feed-section')?.scrollIntoView({ behavior: 'smooth' })}
                   >
                     <BarChart3 className="h-5 w-5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" className="text-xs"><p>Analytics (Soon)</p></TooltipContent>
+                <TooltipContent side="bottom" className="text-xs"><p>Analytics</p></TooltipContent>
               </Tooltip>
                <Tooltip>
                 <TooltipTrigger asChild>
@@ -292,8 +296,43 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        {/* My Meetings Section - Placeholder */}
+        <section id="my-meetings-section" className="py-10 sm:py-12 md:py-16">
+          <div className="max-w-4xl mx-auto px-3 sm:px-5 lg:px-6">
+            <div className="mb-8 text-center">
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">My Meetings</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-1.5">
+                View upcoming, running, and past meetings.
+              </p>
+            </div>
+            <Card className="rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm shadow-md">
+              <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4">
+                <div>
+                  <CardTitle className="text-sm sm:text-base font-semibold text-card-foreground">Meeting Schedule</CardTitle>
+                  <CardDescription className="text-[10px] sm:text-xs text-muted-foreground">Manage your meetings here.</CardDescription>
+                </div>
+                <Button size="sm" variant="outline" className="text-xs" disabled>
+                  <PlusCircle className="mr-1.5 h-3.5 w-3.5" /> Schedule New (Soon)
+                </Button>
+              </CardHeader>
+              <CardContent className="p-3 sm:p-4 min-h-[150px] flex items-center justify-center">
+                {meetings.length === 0 ? (
+                  <div className="text-center text-muted-foreground">
+                    <CalendarDays className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm font-medium">No meetings scheduled or recorded yet.</p>
+                    <p className="text-xs">Start a new meeting or schedule one to see it here.</p>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">Meeting list will appear here.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Activity Feed Section */}
         <section
+          id="activity-feed-section"
           className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[30vh] pb-10 sm:pb-12 md:pb-16"
         >
           <div className="relative z-10 max-w-2xl mx-auto w-full">
@@ -316,4 +355,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
