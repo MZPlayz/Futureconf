@@ -62,9 +62,9 @@ export default function FutureConfPage() {
       router.push('/login');
     } else if (user) {
       const localParticipant: Participant = {
-        id: user.id, // Use user.id for Supabase
+        id: user.id, 
         name: user.email?.split('@')[0] || 'You',
-        avatar: `https://picsum.photos/seed/${user.id}/200/200`, // Use user.id
+        avatar: `https://picsum.photos/seed/${user.id}/200/200`, 
         isHost: false,
         isSpeaking: true, 
         dataAiHint: 'person happy',
@@ -79,7 +79,7 @@ export default function FutureConfPage() {
         if (!userMessageExists) {
           return [
             ...prev,
-            { id: '3', sender: user.email?.split('@')[0] || 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: `https://picsum.photos/seed/${user.id}/40/40` } // Use user.id
+            { id: '3', sender: user.email?.split('@')[0] || 'You', text: 'Hello! Looking forward to this meeting.', timestamp: new Date(Date.now() - 1000 * 60 * 3), isOwn: true, avatar: `https://picsum.photos/seed/${user.id}/40/40` } 
           ].sort((a,b) => a.timestamp.getTime() - b.timestamp.getTime());
         }
         return prev;
@@ -176,7 +176,7 @@ export default function FutureConfPage() {
       text,
       timestamp: new Date(),
       isOwn: true,
-      avatar: `https://picsum.photos/seed/${user.id}/40/40` // Use user.id
+      avatar: `https://picsum.photos/seed/${user.id}/40/40`
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setCurrentMessage('');
@@ -367,7 +367,7 @@ export default function FutureConfPage() {
   if (authLoading || !user) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
       </div>
     );
   }
@@ -375,23 +375,23 @@ export default function FutureConfPage() {
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden antialiased">
       <main className="flex-1 flex flex-col relative">
-        <header className="p-3 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between">
+        <header className="p-2 border-b border-border flex-shrink-0 bg-card/80 backdrop-blur-sm flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Link href="/" passHref>
-                <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors">
-                  <RadioTower className="w-6 h-6" />
+                <Button variant="ghost" size="icon" className="text-primary hover:text-primary/80 transition-colors w-7 h-7">
+                  <RadioTower className="w-5 h-5" />
                 </Button>
             </Link>
-            <div className="w-px h-6 bg-border mx-2"></div>
-            <h1 className="text-lg font-semibold text-foreground tracking-tight">FutureConf</h1>
+            <div className="w-px h-5 bg-border mx-1.5"></div>
+            <h1 className="text-base font-semibold text-foreground tracking-tight">FutureConf</h1>
           </div>
-          <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+          <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
             <span className="hidden sm:inline">{currentTime}</span>
             <TooltipProvider delayDuration={100}>
                <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-8 h-8">
-                      <Zap className="w-4 h-4 text-yellow-400" />
+                    <Button variant="ghost" size="icon" className="w-7 h-7">
+                      <Zap className="w-3.5 h-3.5 text-yellow-400" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom"><p>AI Features (Soon)</p></TooltipContent>
@@ -399,8 +399,8 @@ export default function FutureConfPage() {
 
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-8 h-8">
-                      <Settings2 className="w-4 h-4" />
+                    <Button variant="ghost" size="icon" className="w-7 h-7">
+                      <Settings2 className="w-3.5 h-3.5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom"><p>Settings (Soon)</p></TooltipContent>
@@ -408,8 +408,8 @@ export default function FutureConfPage() {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={toggleFullScreen}>
-                    <Maximize className="w-4 h-4" />
+                  <Button variant="ghost" size="icon" className="w-7 h-7" onClick={toggleFullScreen}>
+                    <Maximize className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom">
@@ -418,8 +418,8 @@ export default function FutureConfPage() {
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => handleLogout()}>
-                    <LogOut className="w-4 h-4 text-red-500" />
+                  <Button variant="ghost" size="icon" className="w-7 h-7" onClick={() => handleLogout()}>
+                    <LogOut className="w-3.5 h-3.5 text-red-500" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="bottom"><p>Logout</p></TooltipContent>
@@ -429,11 +429,11 @@ export default function FutureConfPage() {
         </header>
         
         {hasCameraPermission === false && (
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 p-4 w-full max-w-md">
-              <Alert variant="destructive" className="rounded-lg shadow-md">
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 z-10 p-3 w-full max-w-sm">
+              <Alert variant="destructive" className="rounded-md shadow-md">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Camera & Mic Access Denied</AlertTitle>
-                  <AlertDescription>
+                  <AlertDescription className="text-xs">
                       FutureConf needs camera and microphone access. Please enable permissions and refresh.
                   </AlertDescription>
               </Alert>
@@ -458,7 +458,7 @@ export default function FutureConfPage() {
         />
       </main>
       {isChatPanelOpen && (
-        <div className="w-full md:w-[300px] lg:w-[320px] xl:w-[340px] h-full flex flex-col border-l border-border bg-card/60 backdrop-blur-sm shadow-lg md:shadow-none">
+        <div className="w-full md:w-[280px] lg:w-[300px] xl:w-[320px] h-full flex flex-col border-l border-border bg-card/60 backdrop-blur-sm shadow-lg md:shadow-none">
            <ChatPanel
             messages={messages}
             smartReplies={smartReplySuggestions}

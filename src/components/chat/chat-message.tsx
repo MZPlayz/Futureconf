@@ -14,37 +14,42 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const [formattedTimestamp, setFormattedTimestamp] = useState<string>('');
 
   useEffect(() => {
-    setFormattedTimestamp(format(new Date(timestamp), "p"));
+    // Ensure timestamp is valid before formatting
+    if (timestamp && new Date(timestamp).toString() !== "Invalid Date") {
+      setFormattedTimestamp(format(new Date(timestamp), "p"));
+    } else {
+      setFormattedTimestamp("..."); // Fallback for invalid or missing timestamp
+    }
   }, [timestamp]);
 
   return (
     <div
       className={cn(
-        "flex items-start space-x-3 py-3 animate-in fade-in-50 duration-300",
+        "flex items-start space-x-2 py-2 animate-in fade-in-50 duration-300", // Reduced space and padding
         isOwn ? "justify-end" : "justify-start"
       )}
     >
       {!isOwn && (
-        <Avatar className="w-8 h-8">
+        <Avatar className="w-7 h-7"> {/* Reduced avatar size */}
           <AvatarImage src={avatar} alt={sender} data-ai-hint="person portrait" />
           <AvatarFallback>
-            <User2 className="w-4 h-4" />
+            <User2 className="w-3.5 h-3.5" /> {/* Reduced icon size */}
           </AvatarFallback>
         </Avatar>
       )}
       <div className={cn("max-w-[70%]")}>
         <div
           className={cn(
-            "p-3 rounded-lg shadow",
+            "p-2 rounded-md shadow", // Reduced padding and radius
             isOwn
               ? "bg-primary text-primary-foreground rounded-br-none"
               : "bg-card border border-border rounded-bl-none"
           )}
         >
           {!isOwn && (
-            <p className="text-xs font-semibold mb-1 text-muted-foreground">{sender}</p>
+            <p className="text-xs font-semibold mb-0.5 text-muted-foreground">{sender}</p> {/* Reduced mb */}
           )}
-          <p className="text-sm whitespace-pre-wrap break-words">{text}</p>
+          <p className="text-xs whitespace-pre-wrap break-words">{text}</p> {/* Reduced font size */}
         </div>
         <p
           className={cn(
@@ -52,14 +57,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
             isOwn ? "text-right" : "text-left"
           )}
         >
-          {formattedTimestamp || "..."}
+          {formattedTimestamp}
         </p>
       </div>
       {isOwn && (
-        <Avatar className="w-8 h-8 ml-3">
+        <Avatar className="w-7 h-7 ml-2"> {/* Reduced avatar size and margin */}
            <AvatarImage src={avatar} alt={sender} data-ai-hint="person portrait"/>
           <AvatarFallback>
-             <User2 className="w-4 h-4" />
+             <User2 className="w-3.5 h-3.5" /> {/* Reduced icon size */}
           </AvatarFallback>
         </Avatar>
       )}

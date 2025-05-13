@@ -37,13 +37,13 @@ export function ConferenceControls({
   onChatToggle,
   hasCameraPermission,
 }: ConferenceControlsProps) {
-  const controlButtonClass = "rounded-full w-11 h-11 p-2.5 transition-colors duration-150 ease-in-out";
+  const controlButtonClass = "rounded-full w-10 h-10 p-2 transition-colors duration-150 ease-in-out"; // Reduced size
   const activeControlButtonClass = "bg-primary/20 text-primary hover:bg-primary/30";
   const permissionDenied = hasCameraPermission === false;
 
   return (
     <TooltipProvider delayDuration={100}>
-      <div className="flex justify-center items-center space-x-2 md:space-x-3 p-3 bg-card border-t border-border">
+      <div className="flex justify-center items-center space-x-1.5 md:space-x-2 p-2 bg-card border-t border-border"> {/* Reduced padding and spacing */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -54,7 +54,7 @@ export function ConferenceControls({
               aria-label={isMuted ? "Unmute" : "Mute"}
               disabled={permissionDenied}
             >
-              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              {isMuted ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />} {/* Reduced icon size */}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -72,7 +72,7 @@ export function ConferenceControls({
               aria-label={isVideoEnabled ? "Stop Video" : "Start Video"}
               disabled={permissionDenied}
             >
-              {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+              {isVideoEnabled ? <Video className="w-4 h-4" /> : <VideoOff className="w-4 h-4" />} {/* Reduced icon size */}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -89,7 +89,7 @@ export function ConferenceControls({
               className={`${controlButtonClass} ${isScreenSharing ? activeControlButtonClass : 'hover:bg-muted'}`}
               aria-label={isScreenSharing ? "Stop Sharing" : "Share Screen"}
             >
-              {isScreenSharing ? <ScreenShareOff className="w-5 h-5 text-primary" /> : <ScreenShare className="w-5 h-5" />}
+              {isScreenSharing ? <ScreenShareOff className="w-4 h-4 text-primary" /> : <ScreenShare className="w-4 h-4" />} {/* Reduced icon size */}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -106,7 +106,7 @@ export function ConferenceControls({
               className={`${controlButtonClass} ${isChatPanelOpen ? activeControlButtonClass : 'hover:bg-muted'}`}
               aria-label={isChatPanelOpen ? "Close Chat" : "Open Chat"}
             >
-              {isChatPanelOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
+              {isChatPanelOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />} {/* Reduced icon size */}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -123,7 +123,7 @@ export function ConferenceControls({
               className={`${controlButtonClass} bg-red-600 hover:bg-red-700 text-white`}
               aria-label="End Call"
             >
-              <PhoneOff className="w-5 h-5" />
+              <PhoneOff className="w-4 h-4" /> {/* Reduced icon size */}
             </Button>
           </TooltipTrigger>
           <TooltipContent>

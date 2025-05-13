@@ -29,24 +29,24 @@ export function MessageInput({ onSendMessage, currentMessage, setCurrentMessage,
   };
 
   return (
-    <div className={cn("flex items-start space-x-2", className)}>
+    <div className={cn("flex items-start space-x-1.5", className)}> {/* Reduced space */}
       <Textarea
         value={currentMessage}
         onChange={(e) => setCurrentMessage(e.target.value)}
         onKeyPress={handleKeyPress}
         placeholder="Type a message..."
-        className="flex-1 resize-none rounded-lg shadow-sm focus:ring-primary focus:border-primary bg-background"
+        className="flex-1 resize-none rounded-md shadow-sm focus:ring-primary focus:border-primary bg-background text-sm py-1.5 px-2.5" // Adjusted padding & text size
         rows={1}
         disabled={disabled}
       />
       <Button 
         onClick={handleSubmit} 
         size="icon" 
-        className="rounded-lg h-auto aspect-square p-2.5" // Adjusted padding
+        className="rounded-md h-auto aspect-square p-2" // Adjusted padding & rounded
         disabled={disabled || currentMessage.trim() === ''}
         aria-label="Send Message"
       >
-        <Send className="w-5 h-5" />
+        <Send className="w-4 h-4" /> {/* Reduced icon size */}
       </Button>
     </div>
   );

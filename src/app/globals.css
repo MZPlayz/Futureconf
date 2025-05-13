@@ -13,7 +13,7 @@
     --popover: 240 5% 7%; /* Darker Popover Background */
     --popover-foreground: 240 5% 95%; /* Very Light Grey for popover text */
 
-    --primary: 28 100% 55%; /* F97300 - Orange, slightly desaturated for better balance */
+    --primary: 28 100% 55%; /* F97300 - Orange */
     --primary-foreground: 210 40% 98%; /* Lighter foreground for primary */
 
     --secondary: 240 4% 25%; /* Muted Desaturated Blue/Grey */
@@ -37,7 +37,7 @@
     --chart-3: 28 90% 60%;
     --chart-4: 28 85% 55%;
     --chart-5: 28 80% 50%;
-    --radius: 0.375rem; /* Slightly less rounded for a cleaner look */
+    --radius: 0.25rem; /* Reduced for a sharper, more "posh" look */
 
     /* Sidebar variables - Dark Theme */
     --sidebar-background: 240 5% 8%; 
