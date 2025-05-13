@@ -8,7 +8,7 @@ import {
   PhoneOff,
   PanelRightOpen,
   PanelRightClose,
-  ScreenShareOff, // Assuming this exists or use ScreenShare and toggle state
+  ScreenShareOff,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -22,6 +22,7 @@ interface ConferenceControlsProps {
   onScreenShareToggle: () => void;
   onEndCall: () => void;
   onChatToggle: () => void;
+  hasCameraPermission: boolean | null;
 }
 
 export function ConferenceControls({
@@ -34,9 +35,11 @@ export function ConferenceControls({
   onScreenShareToggle,
   onEndCall,
   onChatToggle,
+  hasCameraPermission,
 }: ConferenceControlsProps) {
   const controlButtonClass = "rounded-full w-12 h-12 p-3 transition-all duration-200 ease-in-out transform hover:scale-110";
   const activeControlButtonClass = "bg-primary/20 text-primary";
+  const permissionDenied = hasCameraPermission === false;
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -49,12 +52,13 @@ export function ConferenceControls({
               onClick={onMuteToggle}
               className={`${controlButtonClass} ${isMuted ? 'bg-destructive/80 hover:bg-destructive text-white' : 'hover:bg-muted'}`}
               aria-label={isMuted ? "Unmute" : "Mute"}
+              disabled={permissionDenied}
             >
               {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{isMuted ? "Unmute" : "Mute"}</p>
+            <p>{permissionDenied ? "Mic disabled (no permission)" : (isMuted ? "Unmute" : "Mute")}</p>
           </TooltipContent>
         </Tooltip>
 
@@ -66,12 +70,13 @@ export function ConferenceControls({
               onClick={onVideoToggle}
               className={`${controlButtonClass} ${!isVideoEnabled ? 'bg-destructive/80 hover:bg-destructive text-white' : 'hover:bg-muted'}`}
               aria-label={isVideoEnabled ? "Stop Video" : "Start Video"}
+              disabled={permissionDenied}
             >
               {isVideoEnabled ? <Video className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>{isVideoEnabled ? "Stop Video" : "Start Video"}</p>
+            <p>{permissionDenied ? "Video disabled (no permission)" : (isVideoEnabled ? "Stop Video" : "Start Video")}</p>
           </TooltipContent>
         </Tooltip>
 

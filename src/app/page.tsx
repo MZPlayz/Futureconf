@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { VideoGrid } from '@/components/conference/video-grid';
 import { ConferenceControls } from '@/components/conference/conference-controls';
 import { ChatPanel } from '@/components/chat/chat-panel';
 import type { ChatMessage, Participant } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from 'lucide-react';
 
 const initialParticipants: Participant[] = [
-  { id: 'p1', name: 'Alice', avatar: 'https://picsum.photos/seed/alice-conf/200/200', isHost: true, isSpeaking: false, dataAiHint: 'woman smiling' },
-  { id: 'p2', name: 'You', avatar: 'https://picsum.photos/seed/you-conf/200/200', isHost: false, isSpeaking: true, dataAiHint: 'person happy' },
-  { id: 'p3', name: 'Bob', avatar: 'https://picsum.photos/seed/bob-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'man thinking' },
-  { id: 'p4', name: 'Charlie', avatar: 'https://picsum.photos/seed/charlie-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'person glasses' },
-  { id: 'p5', name: 'Diana', avatar: 'https://picsum.photos/seed/diana-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'woman nature' },
+  { id: 'p1', name: 'Alice', avatar: 'https://picsum.photos/seed/alice-conf/200/200', isHost: true, isSpeaking: false, dataAiHint: 'woman smiling', isLocal: false },
+  { id: 'p2', name: 'You', avatar: 'https://picsum.photos/seed/you-conf/200/200', isHost: false, isSpeaking: true, dataAiHint: 'person happy', isLocal: true },
+  { id: 'p3', name: 'Bob', avatar: 'https://picsum.photos/seed/bob-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'man thinking', isLocal: false },
+  { id: 'p4', name: 'Charlie', avatar: 'https://picsum.photos/seed/charlie-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'person glasses', isLocal: false },
+  { id: 'p5', name: 'Diana', avatar: 'https://picsum.photos/seed/diana-conf/200/200', isHost: false, isSpeaking: false, dataAiHint: 'woman nature', isLocal: false },
 ];
 
 const initialMessages: ChatMessage[] = [
@@ -34,12 +36,52 @@ export default function FutureConfPage() {
   
   // Conference states
   const [isMuted, setIsMuted] = useState(false);
-  const [isVideoEnabled, setIsVideoEnabled] = useState(true);
+  const [isVideoEnabled, setIsVideoEnabled] = useState(false); // Default to false until permission granted
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenSharingParticipantId, setScreenSharingParticipantId] = useState<string | null>(null);
 
+  const [localCameraStream, setLocalCameraStream] = useState<MediaStream | null>(null);
+  const [localScreenStream, setLocalScreenStream] = useState<MediaStream | null>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
 
   const { toast } = useToast();
+
+  // Request camera permission on mount
+  useEffect(() => {
+    const getCameraPermission = async () => {
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          setLocalCameraStream(stream);
+          setHasCameraPermission(true);
+          setIsVideoEnabled(true); // Enable video by default if permission is granted
+           // Ensure 'You' participant reflects initial video state
+          setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: true, isMuted: false } : p));
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          setHasCameraPermission(false);
+          setIsVideoEnabled(false);
+          toast({
+            variant: 'destructive',
+            title: 'Camera Access Denied',
+            description: 'Please enable camera and microphone permissions in your browser settings.',
+          });
+        }
+      } else {
+        setHasCameraPermission(false); // SSR or no mediaDevices support
+        console.warn("navigator.mediaDevices is not available.")
+      }
+    };
+
+    getCameraPermission();
+
+    return () => { // Cleanup: stop tracks when component unmounts
+      localCameraStream?.getTracks().forEach(track => track.stop());
+      localScreenStream?.getTracks().forEach(track => track.stop());
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast]); // localCameraStream and localScreenStream are intentionally omitted from deps for cleanup
+
 
   const handleSendMessage = useCallback((text: string) => {
     if (text.trim() === '') return;
@@ -86,74 +128,156 @@ export default function FutureConfPage() {
 
   const handleSmartReplyClick = (reply: string) => {
     setCurrentMessage(reply);
-    // Optionally, send the message directly:
-    // handleSendMessage(reply); 
   };
 
   const toggleChatPanel = () => setIsChatPanelOpen(prev => !prev);
 
   const handleMuteToggle = () => {
-    setIsMuted(prev => !prev);
-    const youParticipant = participants.find(p => p.name === 'You');
-    if (youParticipant) {
-      setParticipants(prev => prev.map(p => p.id === youParticipant.id ? {...p, isMuted: !isMuted} : p));
+    const newIsMuted = !isMuted;
+    setIsMuted(newIsMuted); 
+
+    if (localCameraStream) {
+        localCameraStream.getAudioTracks().forEach(track => track.enabled = !newIsMuted);
     }
-    toast({ title: `Microphone ${!isMuted ? 'muted' : 'unmuted'}` });
+    if (isScreenSharing && localScreenStream) { 
+        localScreenStream.getAudioTracks().forEach(track => track.enabled = !newIsMuted);
+    }
+    setParticipants(prev => prev.map(p => p.isLocal ? {...p, isMuted: newIsMuted} : p));
+    toast({ title: `Microphone ${newIsMuted ? 'muted' : 'unmuted'}` });
   };
 
-  const handleVideoToggle = () => {
-    setIsVideoEnabled(prev => !prev);
-    const youParticipant = participants.find(p => p.name === 'You');
-    if (youParticipant) {
-      setParticipants(prev => prev.map(p => p.id === youParticipant.id ? {...p, isVideoEnabled: !isVideoEnabled} : p));
+  const handleVideoToggle = async () => {
+    const newIsVideoEnabled = !isVideoEnabled;
+    
+    if (newIsVideoEnabled) {
+        if (!localCameraStream && hasCameraPermission !== false) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                setLocalCameraStream(stream);
+                setHasCameraPermission(true);
+                // If audio was muted, apply it to the new stream
+                stream.getAudioTracks().forEach(track => track.enabled = !isMuted);
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                setHasCameraPermission(false);
+                toast({ variant: "destructive", title: "Camera Error", description: "Could not access camera."});
+                return; // Don't proceed to set isVideoEnabled true
+            }
+        } else if (localCameraStream) {
+            localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
+        }
+    } else { 
+        localCameraStream?.getVideoTracks().forEach(track => track.enabled = false);
     }
-    toast({ title: `Video ${!isVideoEnabled ? 'disabled' : 'enabled'}` });
+    setIsVideoEnabled(newIsVideoEnabled);
+    setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: newIsVideoEnabled} : p));
+    toast({ title: `Video ${newIsVideoEnabled ? 'enabled' : 'disabled'}` });
   };
   
-  const handleScreenShareToggle = () => {
+  const handleScreenShareToggle = async () => {
     const newIsScreenSharing = !isScreenSharing;
-    setIsScreenSharing(newIsScreenSharing);
-    const youParticipant = participants.find(p => p.name === 'You');
+    const youParticipant = participants.find(p => p.isLocal);
 
-    if (newIsScreenSharing && youParticipant) {
-      setScreenSharingParticipantId(youParticipant.id);
+    if (newIsScreenSharing) {
+        if (!youParticipant) return;
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ video: { cursor: "always" }, audio: { echoCancellation: true, noiseSuppression: true, sampleRate: 44100 } });
+            stream.getVideoTracks()[0].addEventListener('ended', () => {
+                setIsScreenSharing(false);
+                setLocalScreenStream(null);
+                setScreenSharingParticipantId(null);
+                if (isVideoEnabled && localCameraStream) { // Re-enable camera if it was on
+                   localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
+                }
+                setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: false} : p));
+                toast({ title: "Screen sharing stopped by browser" });
+            });
+            setLocalScreenStream(stream);
+            setIsScreenSharing(true);
+            setScreenSharingParticipantId(youParticipant.id);
+            if (isVideoEnabled && localCameraStream) { // Disable camera video while screen sharing
+              localCameraStream.getVideoTracks().forEach(track => track.enabled = false);
+            }
+            setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: true} : p));
+            toast({ title: "Screen sharing started" });
+        } catch (error) {
+            console.error('Error starting screen share:', error);
+            toast({ variant: "destructive", title: "Screen Share Error", description: "Could not start screen sharing. Please ensure permission is granted."});
+        }
     } else {
-      setScreenSharingParticipantId(null);
+        localScreenStream?.getTracks().forEach(track => track.stop());
+        setLocalScreenStream(null);
+        setIsScreenSharing(false);
+        setScreenSharingParticipantId(null);
+        if (isVideoEnabled && localCameraStream) { // Re-enable camera video if it was on
+           localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
+        }
+        setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: false} : p));
+        toast({ title: "Screen sharing stopped" });
     }
-    toast({ title: `Screen sharing ${newIsScreenSharing ? 'started' : 'stopped'}` });
   };
 
   const handleEndCall = () => {
+    localCameraStream?.getTracks().forEach(track => track.stop());
+    localScreenStream?.getTracks().forEach(track => track.stop());
+    setLocalCameraStream(null);
+    setLocalScreenStream(null);
     toast({ title: 'Call Ended', description: 'You have left the meeting.' });
-    // Reset states or redirect
     setMessages([]);
-    setParticipants([]);
+    setParticipants(initialParticipants.map(p => p.isLocal ? {...p, isVideoEnabled: false, isMuted: false, isScreenSharing: false, mediaStream: null} : p)); // Reset participants state
+    setIsVideoEnabled(false);
+    setIsMuted(false);
+    setIsScreenSharing(false);
   };
 
-  // Update 'You' participant based on local state
-  useEffect(() => {
-    setParticipants(prev => prev.map(p => {
-      if (p.name === 'You') {
+  const processedParticipants = participants.map(p => {
+    if (p.isLocal) {
+        let mediaStreamToUse: MediaStream | null = null;
+        const isCurrentlyScreenSharing = isScreenSharing && p.id === screenSharingParticipantId;
+
+        if (isCurrentlyScreenSharing && localScreenStream) {
+            mediaStreamToUse = localScreenStream;
+        } else if (isVideoEnabled && localCameraStream) {
+            mediaStreamToUse = localCameraStream;
+        }
+        
         return {
-          ...p,
-          isMuted,
-          isVideoEnabled,
+            ...p,
+            isMuted: isMuted,
+            isVideoEnabled: isCurrentlyScreenSharing ? false : isVideoEnabled, // Camera is off if screen sharing
+            mediaStream: mediaStreamToUse,
+            isScreenSharing: isCurrentlyScreenSharing,
         };
-      }
-      return p;
-    }));
-  }, [isMuted, isVideoEnabled]);
+    }
+    // For remote participants, mediaStream would come from a WebRTC connection (not implemented)
+    // We can simulate some remote users having video on for UI testing
+    if(p.id === 'p1') return {...p, isVideoEnabled: true} // Alice has video on
+    return p;
+  });
 
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-background text-foreground overflow-hidden">
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col relative"> {/* Added relative for Alert positioning */}
         <header className="p-4 border-b border-border flex-shrink-0 bg-card shadow-sm">
           <h1 className="text-2xl font-bold text-primary">FutureConf</h1>
         </header>
+        
+        {hasCameraPermission === false && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 p-4 w-full max-w-md">
+              <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>Camera/Microphone Access Denied</AlertTitle>
+                  <AlertDescription>
+                      FutureConf needs camera and microphone access to function fully. Please enable permissions in your browser settings and refresh the page.
+                  </AlertDescription>
+              </Alert>
+          </div>
+        )}
+
         <VideoGrid 
-            participants={participants} 
-            isScreenSharingActive={isScreenSharing}
+            participants={processedParticipants} 
+            isScreenSharingActive={isScreenSharing} // This prop might be redundant if participant.isScreenSharing is used
             screenSharingParticipantId={screenSharingParticipantId}
         />
         <ConferenceControls
@@ -166,6 +290,7 @@ export default function FutureConfPage() {
             onScreenShareToggle={handleScreenShareToggle}
             onEndCall={handleEndCall}
             onChatToggle={toggleChatPanel}
+            hasCameraPermission={hasCameraPermission}
         />
       </main>
       {isChatPanelOpen && (
