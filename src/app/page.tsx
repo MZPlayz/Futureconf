@@ -61,6 +61,9 @@ const dummyServers: Server[] = [
   { id: 'explore', name: 'Explore Servers', action: 'explore' },
 ];
 
+// Example: Assume 'home' is the active server for styling the pill
+const ACTIVE_SERVER_ID = 'home';
+
 
 const DashboardHeaderContent = () => {
   const { user, signOutUser } = useAuth();
@@ -246,12 +249,14 @@ export default function DashboardPage() {
 
   const handleServerClick = (serverName: string) => {
     console.log(`Clicked on server: ${serverName}`);
+    // Here you would typically navigate to the server's content or update state
   };
   
   const getIconForServer = (server: Server) => {
-    if (server.isHome) return <MessageCircle className="h-5 w-5 text-sidebar-foreground group-data-[active=true]:text-sidebar-accent-foreground" />;
-    if (server.action === 'add') return <Plus className="h-5 w-5 text-green-500 group-hover:text-white" />;
-    if (server.action === 'explore') return <Compass className="h-5 w-5 text-green-500 group-hover:text-white" />;
+    const iconSize = "h-6 w-6"; // Adjusted icon size
+    if (server.isHome) return <MessageCircle className={cn(iconSize, "text-sidebar-foreground group-data-[active=true]:text-sidebar-accent-foreground")} />;
+    if (server.action === 'add') return <Plus className={cn(iconSize, "text-green-500 group-hover:text-white")} />;
+    if (server.action === 'explore') return <Compass className={cn(iconSize, "text-green-500 group-hover:text-white")} />;
     return null;
   };
 
@@ -262,48 +267,62 @@ export default function DashboardPage() {
         variant="sidebar" 
         collapsible="icon"
         className="border-r border-sidebar-border bg-sidebar" 
-        style={{ '--sidebar-width': '280px', '--sidebar-width-icon': '64px' } as React.CSSProperties}
+        style={{ '--sidebar-width': '280px', '--sidebar-width-icon': '72px' } as React.CSSProperties} // Adjusted icon width
       >
         <SidebarContent className="p-1.5 flex flex-col gap-1.5">
           {dummyServers.map((server) => (
-            <SidebarMenuItem key={server.id} className="group/server-item">
+            <SidebarMenuItem key={server.id} className="relative"> {/* Added relative for pill positioning */}
+               {/* Unread / Active Indicator */}
+               { (server.id === ACTIVE_SERVER_ID || (server.unreadCount && server.unreadCount > 0)) && 
+                 !server.isHome && !server.action && (
+                <span
+                  className={cn(
+                    "absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ease-in-out",
+                    server.id === ACTIVE_SERVER_ID ? "h-7" : "h-2" // Taller for active, shorter for unread
+                  )}
+                />
+              )}
               <SidebarMenuButton
-                variant="default"
-                size="lg" 
+                variant="default" // Variant default means it uses sidebar-accent for hover
+                size="lg" // size="lg" is h-12, but we customize size below
                 className={cn(
-                  "justify-center h-12 w-12 p-0 rounded-full data-[active=true]:bg-primary data-[active=true]:hover:bg-primary/90 group-data-[collapsible=icon]:rounded-xl",
+                  "group justify-center h-[50px] w-[50px] p-0", // Custom size
+                  "rounded-full", // Base is circular
+                  "hover:rounded-xl", // Hover makes it squircle
+                  server.id === ACTIVE_SERVER_ID && "rounded-xl bg-primary hover:bg-primary/90", // Active server styling
+                  !(server.id === ACTIVE_SERVER_ID) && "data-[active=true]:rounded-xl data-[active=true]:bg-primary data-[active=true]:hover:bg-primary/90", // Fallback active styling if needed (though custom above is better)
                   "transition-all duration-200 ease-in-out",
-                  "hover:rounded-xl",
-                  (server.action === 'add' || server.action === 'explore') && "bg-muted hover:bg-green-500/80 text-green-500"
+                  (server.action === 'add' || server.action === 'explore') && 
+                    "bg-sidebar-accent hover:bg-green-500 text-green-500 hover:text-white" // Styling for Add/Explore
                 )}
                 tooltip={{
                   children: server.name,
                   side: "right",
                   align: "center",
-                  className: "ml-2",
+                  className: "ml-2", // Ensure tooltip is positioned nicely
                 }}
+                // The data-active prop is set by SidebarMenuButton based on isActive prop, which we are not using directly here.
+                // For demo, we are using server.id === ACTIVE_SERVER_ID for styling active server.
+                // In a real app, you'd manage active server state.
                 onClick={() => handleServerClick(server.name)}
               >
                 {server.imageUrl ? (
-                  <Avatar className="h-10 w-10 transition-all duration-200 ease-in-out group-hover/server-item:rounded-lg">
+                  <Avatar className={cn(
+                    "h-[42px] w-[42px] rounded-full", // Custom avatar size, remains circular
+                    "transition-all duration-200 ease-in-out"
+                    // Avatar shape itself doesn't need to change on hover/active if button clips it
+                  )}>
                     <AvatarImage src={server.imageUrl} alt={server.name} data-ai-hint={server.dataAiHint} />
-                    <AvatarFallback className="bg-muted text-muted-foreground group-hover/server-item:rounded-lg">
+                    <AvatarFallback className="bg-muted text-muted-foreground rounded-full">
                       {server.iconText || server.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <div className="h-10 w-10 flex items-center justify-center">
+                  <div className="h-[42px] w-[42px] flex items-center justify-center"> {/* Container for Lucide icons */}
                      {getIconForServer(server)}
                   </div>
                 )}
-                <span className="sr-only group-data-[state=expanded]:not-sr-only group-data-[state=expanded]:ml-2 truncate">
-                  {server.name}
-                </span>
-                {server.unreadCount && server.unreadCount > 0 && !server.isHome && (
-                   <div className="absolute left-0 top-1/2 -translate-y-1/2 h-full flex items-center">
-                    <span className="h-4 w-1 bg-white rounded-r-full group-data-[collapsible=icon]:h-2 group-data-[collapsible=icon]:mt-0.5"/>
-                   </div>
-                )}
+                {/* Removed original unread count indicator logic, replaced by the pill above */}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
