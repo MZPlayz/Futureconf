@@ -12,11 +12,12 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog"; // Removed DialogDescription as it's unused here
+  DialogTrigger, // Added DialogTrigger
+} from "@/components/ui/dialog"; 
 import { 
   RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, 
   LayoutDashboard, MessageSquare, BarChart3, Users2, CalendarDays, PlusCircle,
-  Home, Compass, Plus, MessageCircle, PanelLeft // Added Home, Compass, Plus, MessageCircle, PanelLeft
+  Home, Compass, Plus, MessageCircle, PanelLeft 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -36,10 +37,10 @@ import type { Meeting, Server } from '@/types';
 import {
   SidebarProvider,
   Sidebar,
-  SidebarHeader, // Unused, can be removed if not planned
+  SidebarHeader, 
   SidebarContent,
-  SidebarFooter, // Unused, can be removed if not planned
-  SidebarMenu, // Unused, can be removed if not planned
+  SidebarFooter, 
+  SidebarMenu, 
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
@@ -50,7 +51,7 @@ import { cn } from '@/lib/utils';
 
 
 const dummyServers: Server[] = [
-  { id: 'home', name: 'Direct Messages', isHome: true, iconText: 'DM' }, // Changed name
+  { id: 'home', name: 'Direct Messages', isHome: true, iconText: 'DM' }, 
   { id: 'server1', name: 'FutureConf HQ', imageUrl: 'https://placehold.co/48x48/008080/FFFFFF.png?text=FC', dataAiHint: 'company logo', unreadCount: 3 },
   { id: 'server2', name: 'Gaming Den', imageUrl: 'https://placehold.co/48x48/F97300/FFFFFF.png?text=GD', dataAiHint: 'joystick', unreadCount: 10 },
   { id: 'server3', name: 'Art Collective', imageUrl: 'https://placehold.co/48x48/FFFFFF/000000.png?text=AC', dataAiHint: 'paint palette' },
@@ -59,7 +60,6 @@ const dummyServers: Server[] = [
   { id: 'explore', name: 'Explore Servers', action: 'explore' },
 ];
 
-// Example: Assume 'home' is the active server for styling the pill
 const ACTIVE_SERVER_ID = 'home';
 
 
@@ -250,7 +250,7 @@ export default function DashboardPage() {
   };
   
   const getIconForServer = (server: Server) => {
-    const iconSize = "h-6 w-6"; // Adjusted icon size
+    const iconSize = "h-6 w-6"; 
     if (server.isHome) return <MessageCircle className={cn(iconSize, "text-sidebar-foreground group-data-[active=true]:text-sidebar-accent-foreground")} />;
     if (server.action === 'add') return <Plus className={cn(iconSize, "text-green-500 group-hover:text-white")} />;
     if (server.action === 'explore') return <Compass className={cn(iconSize, "text-green-500 group-hover:text-white")} />;
@@ -266,16 +266,15 @@ export default function DashboardPage() {
         className="border-r border-sidebar-border bg-sidebar" 
         style={{ '--sidebar-width': '280px', '--sidebar-width-icon': '72px' } as React.CSSProperties} 
       >
-        <SidebarContent className="p-3 flex flex-col gap-2"> {/* Adjusted padding and gap */}
+        <SidebarContent className="p-3 flex flex-col gap-2"> 
           {dummyServers.map((server) => (
-            <SidebarMenuItem key={server.id} className="relative m-0 p-0"> {/* Ensure no extra margin/padding */}
-               {/* Unread / Active Indicator */}
+            <SidebarMenuItem key={server.id} className="relative m-0 p-0"> 
                { (server.id === ACTIVE_SERVER_ID || (server.unreadCount && server.unreadCount > 0)) && 
-                 !server.action && ( // Don't show pill for action buttons
+                 !server.action && ( 
                 <span
                   className={cn(
                     "absolute left-[-12px] top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-md transition-all duration-200 ease-in-out",
-                    server.id === ACTIVE_SERVER_ID ? "h-10" : "h-2" // Taller for active, shorter for unread
+                    server.id === ACTIVE_SERVER_ID ? "h-10" : "h-2" 
                   )}
                 />
               )}
@@ -283,12 +282,12 @@ export default function DashboardPage() {
                 variant="default"
                 size="lg" 
                 className={cn(
-                  "group justify-center h-12 w-12 p-0", // 48px
+                  "group justify-center h-12 w-12 p-0", 
                   (server.action === 'add' || server.action === 'explore') ? 
                     "rounded-full bg-sidebar-accent hover:bg-green-500 text-green-500 hover:text-white hover:rounded-2xl" :
                     "rounded-3xl hover:rounded-2xl", 
                   server.id === ACTIVE_SERVER_ID && !server.action && 
-                    "rounded-2xl bg-primary hover:bg-primary/90", // Active server (non-action)
+                    "rounded-2xl bg-primary hover:bg-primary/90", 
                   "transition-all duration-200 ease-in-out"
                 )}
                 tooltip={{
@@ -302,7 +301,7 @@ export default function DashboardPage() {
               >
                 {server.imageUrl ? (
                   <Avatar className={cn(
-                    "h-full w-full rounded-full", // Avatar fills the button
+                    "h-full w-full rounded-full", 
                     "transition-all duration-200 ease-in-out"
                   )}>
                     <AvatarImage src={server.imageUrl} alt={server.name} data-ai-hint={server.dataAiHint} />
@@ -379,7 +378,7 @@ export default function DashboardPage() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Active Meetings</DialogTitle>
-                      <CardDescription className="text-sm text-muted-foreground pt-1"> {/* Changed DialogDescription to CardDescription for consistency */}
+                      <CardDescription className="text-sm text-muted-foreground pt-1"> 
                         View ongoing sessions or start a new one.
                       </CardDescription>
                     </DialogHeader>
