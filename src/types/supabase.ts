@@ -15,6 +15,8 @@ export interface Database {
           id: string; // User ID from auth.users
           updated_at: string | null;
           username: string | null;
+          first_name: string | null;
+          last_name: string | null;
           full_name: string | null;
           avatar_url: string | null;
           // Add any other profile fields you need
@@ -23,6 +25,8 @@ export interface Database {
           id: string;
           updated_at?: string | null;
           username?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
           full_name?: string | null;
           avatar_url?: string | null;
         };
@@ -30,6 +34,8 @@ export interface Database {
           id?: string;
           updated_at?: string | null;
           username?: string | null;
+          first_name?: string | null;
+          last_name?: string | null;
           full_name?: string | null;
           avatar_url?: string | null;
         };
@@ -182,3 +188,4 @@ export interface Database {
 // 3. Login: supabase login
 // 4. Generate types: supabase gen types typescript --project-id YOUR_PROJECT_ID --schema public > src/types/supabase.ts
 // Remember to replace YOUR_PROJECT_ID with your actual Supabase project ID.
+

@@ -7,16 +7,23 @@ import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser, AuthError as SupabaseAuthError, Session } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
+interface SignUpUserDetails {
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+}
 interface AuthContextType {
   user: SupabaseUser | null;
   session: Session | null;
   loading: boolean;
   error: SupabaseAuthError | null;
-  signUpUser: (email: string, password: string) => Promise<SupabaseUser | null>;
+  signUpUser: (details: SignUpUserDetails) => Promise<SupabaseUser | null>;
   signInUser: (email: string, password: string) => Promise<SupabaseUser | null>;
   signOutUser: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signInWithGitHub: () => Promise<void>; // Added GitHub
+  signInWithGitHub: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,21 +56,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const signUpUser = async (email: string, password: string): Promise<SupabaseUser | null> => {
+  const signUpUser = async ({ email, password, firstName, lastName, username }: SignUpUserDetails): Promise<SupabaseUser | null> => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
       });
+
       if (signUpError) throw signUpError;
       
-      toast({ 
-        title: 'Account Created', 
-        description: 'Please check your email to verify your account before logging in.' 
-      });
-      return data.user;
+      if (authData.user) {
+        // Now, create a profile for the user
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({ 
+            id: authData.user.id, 
+            first_name: firstName,
+            last_name: lastName,
+            username: username,
+            updated_at: new Date().toISOString(),
+            // avatar_url can be set later, or a default
+          });
+
+        if (profileError) {
+          console.error('Error creating/updating profile:', profileError);
+          // Even if profile creation fails, the auth user might still be created.
+          // Decide on atomicity or how to handle this. For now, log and show toast.
+          toast({ 
+            variant: 'destructive', 
+            title: 'Profile Creation Error', 
+            description: 'Your account was created, but profile details could not be saved: ' + profileError.message 
+          });
+        } else {
+          toast({ 
+            title: 'Account Created', 
+            description: 'Please check your email to verify your account before logging in.' 
+          });
+        }
+        return authData.user;
+      }
+      return null; // Should not happen if signUpError is not thrown
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Sign Up Error', description: (err as SupabaseAuthError).message });
@@ -165,7 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInUser,
     signOutUser,
     signInWithGoogle,
-    signInWithGitHub, // Added
+    signInWithGitHub,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

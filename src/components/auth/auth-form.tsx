@@ -8,7 +8,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card'; // Removed CardHeader
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -28,12 +28,21 @@ const GitHubIcon = () => (
   </svg>
 );
 
-const formSchema = z.object({
+const formSchemaBase = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
-type FormData = z.infer<typeof formSchema>;
+const signUpSchema = formSchemaBase.extend({
+  firstName: z.string().min(1, { message: 'First name is required.' }),
+  lastName: z.string().min(1, { message: 'Last name is required.' }),
+  username: z.string().min(3, { message: 'Username must be at least 3 characters.' }),
+});
+
+type SignUpFormData = z.infer<typeof signUpSchema>;
+type SignInFormData = z.infer<typeof formSchemaBase>;
+type FormData = SignUpFormData | SignInFormData;
+
 
 interface AuthFormProps {
   isSignUp?: boolean;
@@ -44,21 +53,64 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, onGitHubSignIn, loading }: AuthFormProps) {
+  const currentFormSchema = isSignUp ? signUpSchema : formSchemaBase;
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(currentFormSchema),
+     defaultValues: isSignUp ? { firstName: '', lastName: '', username: '', email: '', password: '' } : { email: '', password: '' },
   });
 
   const linkText = isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
   const linkHref = isSignUp ? '/login' : '/signup';
+  const titleText = isSignUp ? 'Create an account' : 'Sign in to FutureConf';
 
   return (
     <Card className="w-full max-w-sm shadow-xl bg-card/90 backdrop-blur-sm rounded-lg border-border/50">
-      <CardContent className="px-6 py-6 space-y-4"> {/* Adjusted padding since CardHeader is removed */}
+      <CardContent className="px-6 py-6 space-y-4">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {isSignUp && (
+            <>
+              <div className="space-y-1.5">
+                <Label htmlFor="firstName" className="text-xs text-muted-foreground">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  placeholder="Your first name"
+                  className="text-sm bg-input border-border focus:border-primary h-10 rounded-md"
+                  {...register('firstName')}
+                  disabled={loading}
+                />
+                {errors.firstName && <p className="text-xs text-destructive pt-1">{(errors.firstName as any).message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="lastName" className="text-xs text-muted-foreground">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  placeholder="Your last name"
+                  className="text-sm bg-input border-border focus:border-primary h-10 rounded-md"
+                  {...register('lastName')}
+                  disabled={loading}
+                />
+                {errors.lastName && <p className="text-xs text-destructive pt-1">{(errors.lastName as any).message}</p>}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="username" className="text-xs text-muted-foreground">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Choose a username"
+                  className="text-sm bg-input border-border focus:border-primary h-10 rounded-md"
+                  {...register('username')}
+                  disabled={loading}
+                />
+                {errors.username && <p className="text-xs text-destructive pt-1">{(errors.username as any).message}</p>}
+              </div>
+            </>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-xs text-muted-foreground">Email</Label>
             <Input
