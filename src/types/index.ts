@@ -1,20 +1,24 @@
+
+export type UserRole = "host" | "participant" | "moderator";
+
 export interface Participant {
-  id: string;
+  id: string; // user_id
   name: string;
   avatar?: string;
-  isHost?: boolean;
+  isHost?: boolean; // Consider deriving from role in MeetingParticipant
   isSpeaking?: boolean;
-  isVideoEnabled?: boolean; // For camera status
+  isVideoEnabled?: boolean;
   isMuted?: boolean;
-  isScreenSharing?: boolean; // True if this participant is actively sharing their screen in the main view
-  mediaStream?: MediaStream | null; // Can be camera or screen share stream
+  isScreenSharing?: boolean;
+  mediaStream?: MediaStream | null;
   dataAiHint?: string;
-  isLocal?: boolean; // To identify the current user
+  isLocal?: boolean;
+  role?: UserRole;
 }
 
 export interface ChatMessage {
   id: string;
-  sender: string;
+  sender: string; // user's name or id
   text: string;
   timestamp: Date;
   isOwn: boolean;
@@ -22,10 +26,19 @@ export interface ChatMessage {
 }
 
 export interface Meeting {
-  id: string;
+  id: string; // UUID from meetings table
   name: string;
-  status: 'upcoming' | 'running' | 'ended';
-  createdAt: Date;
-  participantIds?: string[]; // IDs of participants in this meeting
-  // Add other relevant meeting details here, e.g., scheduledTime, createdByUserId
+  scheduled_at: Date; // Changed from string to Date
+  created_by: string; // User ID of creator
+  status: "upcoming" | "ongoing" | "ended" | "cancelled";
+  description?: string | null;
+  participants?: MeetingParticipant[]; // For detailed participant info including roles
+}
+
+export interface MeetingParticipant {
+  user_id: string;
+  name: string; // Fetched from profiles
+  avatar_url?: string | null; // Fetched from profiles
+  role: UserRole;
+  joined_at: Date;
 }

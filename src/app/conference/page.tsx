@@ -9,7 +9,7 @@ import type { ChatMessage, Participant } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun, GripVertical, ChevronsLeftRight } from 'lucide-react';
+import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun, ChevronsLeftRight, Headphones } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
@@ -19,10 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 
-// No initial participants, they will be added dynamically or it's just the local user.
 const initialParticipants: Participant[] = [];
-
-// No initial messages, chat starts empty.
 const initialMessages: ChatMessage[] = [];
 
 export default function FutureConfPage() {
@@ -39,6 +36,7 @@ export default function FutureConfPage() {
   
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false); 
+  const [isAudioOnly, setIsAudioOnly] = useState(false); // New state for audio-only mode
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenSharingParticipantId, setScreenSharingParticipantId] = useState<string | null>(null);
 
@@ -52,11 +50,10 @@ export default function FutureConfPage() {
   const [theme, setTheme] = useState('dark');
 
   const [isResizing, setIsResizing] = useState(false);
-  const [chatPanelWidth, setChatPanelWidth] = useState(300); // Initial width
+  const [chatPanelWidth, setChatPanelWidth] = useState(300); 
 
 
   useEffect(() => {
-    // Theme management
     const storedTheme = localStorage.getItem('futureconf-theme');
     if (storedTheme) {
       setTheme(storedTheme);
@@ -81,24 +78,20 @@ export default function FutureConfPage() {
         id: user.id, 
         name: user.email?.split('@')[0] || 'You',
         avatar: `https://picsum.photos/seed/${user.id}/200/200`, 
-        isHost: true, // The first user to join/create a meeting can be host
+        isHost: true, 
         isSpeaking: false, 
         dataAiHint: 'person happy',
         isLocal: true,
         isVideoEnabled: false, 
         isMuted: false, 
       };
-      // If participants list is empty (e.g. from initialParticipants), add the local user.
-      // If it already contains participants (e.g. due to re-render or other logic), ensure local user is primary.
       setParticipants(prev => {
         const existingLocal = prev.find(p => p.isLocal);
         if (existingLocal) {
-          return prev.map(p => p.isLocal ? {...localParticipant, ...p } : p); // Update existing local
+          return prev.map(p => p.isLocal ? {...localParticipant, ...p } : p);
         }
-        return [localParticipant, ...prev.filter(p => !p.isLocal)]; // Add new local
+        return [localParticipant, ...prev.filter(p => !p.isLocal)];
       });
-      
-      // Messages should start empty for a new meeting
       setMessages([]); 
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -137,9 +130,9 @@ export default function FutureConfPage() {
           if (isMounted) {
             setLocalCameraStream(stream);
             setHasCameraPermission(true);
-            setIsVideoEnabled(true);
+            if (!isAudioOnly) setIsVideoEnabled(true); // Only enable video if not in audio-only
             setIsMuted(false); 
-            setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: true, isMuted: false } : p));
+            setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: !isAudioOnly, isMuted: false } : p));
           }
         } catch (error) {
           console.error('Error accessing camera:', error);
@@ -181,7 +174,7 @@ export default function FutureConfPage() {
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, user]); 
+  }, [toast, user, isAudioOnly]); // Added isAudioOnly to dependencies
 
 
   const handleSendMessage = useCallback((text: string) => {
@@ -249,7 +242,12 @@ export default function FutureConfPage() {
   };
 
   const handleVideoToggle = async () => {
-    if (!user) return; 
+    if (!user || isAudioOnly) {
+      if(isAudioOnly) {
+        toast({ title: "Video Disabled", description: "Audio-only mode is active."});
+      }
+      return;
+    }
     const newIsVideoEnabled = !isVideoEnabled;
     
     if (newIsVideoEnabled) {
@@ -277,6 +275,28 @@ export default function FutureConfPage() {
     setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: newIsVideoEnabled} : p));
     toast({ title: `Video ${newIsVideoEnabled ? 'enabled' : 'disabled'}` });
   };
+
+  const handleAudioOnlyToggle = () => {
+    if (!user) return;
+    const newIsAudioOnly = !isAudioOnly;
+    setIsAudioOnly(newIsAudioOnly);
+
+    if (newIsAudioOnly) {
+      // Turn off video if it's on
+      if (isVideoEnabled && localCameraStream) {
+        localCameraStream.getVideoTracks().forEach(track => track.enabled = false);
+      }
+      setIsVideoEnabled(false); // Explicitly set video to off
+      setParticipants(prev => prev.map(p => p.isLocal ? { ...p, isVideoEnabled: false } : p));
+      toast({ title: "Audio Only Mode Enabled", description: "Video has been turned off." });
+    } else {
+      // Turning off audio-only doesn't automatically turn video back on.
+      // User needs to toggle video separately if desired.
+      // isVideoEnabled state will retain its previous value before audio-only was turned on,
+      // or remain false if it was already false.
+      toast({ title: "Audio Only Mode Disabled", description: "You can now enable video if you wish." });
+    }
+  };
   
   const handleScreenShareToggle = async () => {
     if (!user) return; 
@@ -292,7 +312,8 @@ export default function FutureConfPage() {
                   setIsScreenSharing(false);
                   setLocalScreenStream(null);
                   setScreenSharingParticipantId(null);
-                  if (isVideoEnabled && localCameraStream) { 
+                  // If video was enabled (and not in audio-only), re-enable camera video track
+                  if (isVideoEnabled && localCameraStream && !isAudioOnly) { 
                      localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
                   }
                   setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: false} : p));
@@ -301,7 +322,8 @@ export default function FutureConfPage() {
               setLocalScreenStream(stream);
               setIsScreenSharing(true);
               setScreenSharingParticipantId(youParticipant.id);
-              if (isVideoEnabled && localCameraStream) { 
+              // Disable camera video track if video was enabled (and not in audio-only)
+              if (isVideoEnabled && localCameraStream && !isAudioOnly) { 
                 localCameraStream.getVideoTracks().forEach(track => track.enabled = false);
               }
               setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: true} : p));
@@ -318,7 +340,8 @@ export default function FutureConfPage() {
         setLocalScreenStream(null);
         setIsScreenSharing(false);
         setScreenSharingParticipantId(null);
-        if (isVideoEnabled && localCameraStream) { 
+        // If video was enabled (and not in audio-only), re-enable camera video track
+        if (isVideoEnabled && localCameraStream && !isAudioOnly) { 
            localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
         }
         setParticipants(prev => prev.map(p => p.isLocal ? {...p, isScreenSharing: false} : p));
@@ -334,21 +357,21 @@ export default function FutureConfPage() {
     
     if (isLoggingOut) {
       await signOutUser();
-      // router.push('/login'); // onAuthStateChange will handle this
     } else {
       toast({ title: 'Call Ended', description: 'You have left the meeting.' });
       router.push('/'); 
     }
     
-    setMessages([]); // Clear messages on end call
-    setParticipants(prev => prev.filter(p => p.isLocal).map(p => ({ // Keep only local, reset state
+    setMessages([]);
+    setParticipants(prev => prev.filter(p => p.isLocal).map(p => ({
         ...p, 
         mediaStream: null, 
         isVideoEnabled: false, 
-        isMuted: true, // Mute local user on end call
+        isMuted: true, 
         isScreenSharing: false
     })));
     setIsVideoEnabled(false);
+    setIsAudioOnly(false); // Reset audio-only mode
     setIsMuted(true); 
     setIsScreenSharing(false);
     setScreenSharingParticipantId(null);
@@ -359,25 +382,23 @@ export default function FutureConfPage() {
     if (p.isLocal) {
         let mediaStreamToUse: MediaStream | null = null;
         const isCurrentlyScreenSharing = isScreenSharing && p.id === screenSharingParticipantId;
+        // Video is enabled only if not in audio-only mode and video is toggled on
+        const actualIsVideoEnabled = isVideoEnabled && !isAudioOnly;
 
         if (isCurrentlyScreenSharing && localScreenStream) {
             mediaStreamToUse = localScreenStream;
-        } else if (isVideoEnabled && localCameraStream) {
+        } else if (actualIsVideoEnabled && localCameraStream) {
             mediaStreamToUse = localCameraStream;
         }
         
         return {
             ...p,
             isMuted: isMuted, 
-            isVideoEnabled: isCurrentlyScreenSharing ? false : isVideoEnabled, 
+            isVideoEnabled: isCurrentlyScreenSharing ? false : actualIsVideoEnabled, 
             mediaStream: mediaStreamToUse,
             isScreenSharing: isCurrentlyScreenSharing,
         };
     }
-    // For non-local participants, their state (isVideoEnabled, mediaStream) would
-    // typically be managed by a signaling server in a real application.
-    // Since we removed initialParticipants, this map will mainly process the local user.
-    // If other participants were to be added via a backend, their properties would be set there.
     return {...p, mediaStream: null}; 
   });
 
@@ -393,8 +414,8 @@ export default function FutureConfPage() {
   const resize = useCallback((mouseMoveEvent: MouseEvent) => {
     if (isResizing) {
       let newWidth = window.innerWidth - mouseMoveEvent.clientX;
-      if (newWidth < 200) newWidth = 200; // Min width
-      if (newWidth > window.innerWidth / 2) newWidth = window.innerWidth / 2; // Max width
+      if (newWidth < 200) newWidth = 200; 
+      if (newWidth > window.innerWidth / 2) newWidth = window.innerWidth / 2; 
       setChatPanelWidth(newWidth);
     }
   }, [isResizing]);
@@ -513,11 +534,13 @@ export default function FutureConfPage() {
             isVideoEnabled={isVideoEnabled}
             isScreenSharing={isScreenSharing}
             isChatPanelOpen={isChatPanelOpen}
+            isAudioOnly={isAudioOnly}
             onMuteToggle={handleMuteToggle}
             onVideoToggle={handleVideoToggle}
             onScreenShareToggle={handleScreenShareToggle}
             onEndCall={() => handleEndCall(false)}
             onChatToggle={toggleChatPanel}
+            onAudioOnlyToggle={handleAudioOnlyToggle}
             hasCameraPermission={hasCameraPermission}
         />
       </main>
@@ -554,4 +577,3 @@ export default function FutureConfPage() {
     </div>
   );
 }
-
