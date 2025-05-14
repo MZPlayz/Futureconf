@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, 
   LayoutDashboard, MessageSquare, BarChart3, Users2, CalendarDays, PlusCircle,
-  Home, Compass, Plus, MessageCircle, PanelLeft // Added PanelLeft
+  Home, Compass, Plus, MessageCircle, PanelLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -170,7 +170,7 @@ const DashboardHeaderContent = () => {
       {/* Right Side: Actions */}
       <div className="flex items-center space-x-2 sm:space-x-3">
         <Link href="/conference" passHref>
-          <Button variant="default" size="sm" className="rounded-md text-xs bg-primary text-primary-foreground hover:bg-primary/90 px-2.5 sm:px-3 py-1 sm:py-1.5">
+          <Button variant="default" size="sm" className="rounded-md text-xs bg-[#CBC3E3] text-neutral-900 hover:bg-[#b8b0d9] px-2.5 sm:px-3 py-1 sm:py-1.5">
             <Video className="mr-1 h-3 w-3 sm:mr-1.5 sm:h-3.5 sm:w-3.5" />
             New Meeting
           </Button>
