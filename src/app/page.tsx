@@ -33,28 +33,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import type { Meeting, Server } from '@/types';
-// Removed SidebarProvider and related imports as the sidebar is being removed.
-// import {
-//   SidebarProvider,
-//   Sidebar,
-//   SidebarHeader, 
-//   SidebarContent,
-//   SidebarFooter, 
-//   SidebarMenu, 
-//   SidebarMenuItem,
-//   SidebarMenuButton,
-//   SidebarTrigger,
-//   SidebarInset,
-//   useSidebar,
-// } from '@/components/ui/sidebar';
+import type { Meeting } from '@/types';
 import { cn } from '@/lib/utils';
 
-// Dummy server data removed as the sidebar is being removed.
 
 const DashboardHeaderContent = () => {
-  const { user, signOutUser } = useAuth();
-  // Removed useSidebar hook as the sidebar is being removed.
+  const { user, profile, signOutUser } = useAuth();
 
   const handleLogout = async () => {
     await signOutUser();
@@ -62,11 +46,13 @@ const DashboardHeaderContent = () => {
 
   if (!user) return null;
 
+  const displayName = profile?.first_name || user.email?.split('@')[0] || 'User';
+  const avatarFallbackText = profile?.first_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U';
+
   return (
     <>
       {/* Left Side: Logo and Title */}
       <div className="flex items-center space-x-1.5">
-        {/* Removed Sidebar toggle buttons */}
         <RadioTower className="w-5 h-5 text-primary" />
         <h1 className="text-base sm:text-lg font-semibold text-foreground">
           FutureConf <span className="font-light text-primary/90 text-sm sm:text-base">Dashboard</span>
@@ -169,8 +155,8 @@ const DashboardHeaderContent = () => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-full">
               <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
-                <AvatarImage src={`https://placehold.co/40x40.png?text=${user.email?.charAt(0).toUpperCase() || 'U'}`} alt={user.email?.charAt(0).toUpperCase() || 'U'} data-ai-hint="user profile" />
-                <AvatarFallback>{user.email?.charAt(0).toUpperCase() || <UserCircle className="h-4 w-4 sm:h-5 sm:w-5" />}</AvatarFallback>
+                <AvatarImage src={profile?.avatar_url || `https://placehold.co/40x40.png?text=${avatarFallbackText}`} alt={displayName} data-ai-hint="user profile" />
+                <AvatarFallback>{avatarFallbackText || <UserCircle className="h-4 w-4 sm:h-5 sm:w-5" />}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -178,7 +164,7 @@ const DashboardHeaderContent = () => {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <p className="text-xs sm:text-sm font-medium leading-none text-foreground">
-                  {user.email?.split('@')[0] || 'User'}
+                  {displayName}
                 </p>
                 <p className="text-[10px] sm:text-xs leading-none text-muted-foreground">
                   {user.email}
@@ -204,7 +190,7 @@ const DashboardHeaderContent = () => {
 
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   const router = useRouter();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   
@@ -221,11 +207,10 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  // Removed server click handler and icon getter as sidebar is removed
+  
+  const welcomeName = profile?.first_name || user.email?.split('@')[0] || "There";
 
   return (
-    // Reverted to the original top-level container for the dashboard page
     <div className="flex flex-col min-h-screen text-foreground antialiased">
       <header className="p-2.5 border-b border-border flex-shrink-0 bg-card/80 shadow-sm sticky top-0 z-40 backdrop-blur-md">
         <div className="flex items-center justify-between max-w-full sm:px-2 lg:px-3"> 
@@ -240,7 +225,7 @@ export default function DashboardPage() {
         >
           <div className="relative z-10 max-w-2xl">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5 text-center">
-              Welcome Back, <span className="text-primary">{user.email?.split('@')[0]}!</span>
+              Welcome Back, <span className="text-primary">{welcomeName}!</span>
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground mb-6 text-center">
               Experience the future of collaboration. Seamless, intelligent, and built for you.

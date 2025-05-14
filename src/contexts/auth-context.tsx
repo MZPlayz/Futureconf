@@ -6,6 +6,9 @@ import React, { createContext, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { User as SupabaseUser, AuthError as SupabaseAuthError, Session } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/types/supabase';
+
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface SignUpUserDetails {
   email: string;
@@ -17,6 +20,7 @@ interface SignUpUserDetails {
 interface AuthContextType {
   user: SupabaseUser | null;
   session: Session | null;
+  profile: Profile | null;
   loading: boolean;
   error: SupabaseAuthError | null;
   signUpUser: (details: SignUpUserDetails) => Promise<SupabaseUser | null>;
@@ -31,22 +35,69 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<SupabaseAuthError | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    setLoading(true);
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    const fetchSessionAndProfile = async () => {
+      setLoading(true);
+      const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+
+      if (sessionError) {
+        console.error("Error fetching session:", sessionError);
+        setError(sessionError);
+        setLoading(false);
+        return;
+      }
+      
       setSession(currentSession);
-      setUser(currentSession?.user ?? null);
+      const currentUser = currentSession?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        const { data: userProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching profile:', profileError.message);
+          // Don't set global error for this, but log it
+          // toast({ variant: 'destructive', title: 'Profile Error', description: 'Could not load your profile data.' });
+        }
+        setProfile(userProfile);
+      } else {
+        setProfile(null);
+      }
       setLoading(false);
-    });
+    };
+
+    fetchSessionAndProfile();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, currentSession) => {
+      async (_event, currentSession) => {
+        setLoading(true);
         setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+        const currentUser = currentSession?.user ?? null;
+        setUser(currentUser);
+
+        if (currentUser) {
+          const { data: userProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentUser.id)
+            .single();
+          
+          if (profileError) {
+             console.error('Error fetching profile on auth change:', profileError.message);
+          }
+          setProfile(userProfile);
+        } else {
+          setProfile(null);
+        }
         setLoading(false);
       }
     );
@@ -54,6 +105,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       authListener?.subscription.unsubscribe();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const signUpUser = async ({ email, password, firstName, lastName, username }: SignUpUserDetails): Promise<SupabaseUser | null> => {
@@ -68,7 +120,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (signUpError) throw signUpError;
       
       if (authData.user) {
-        // Now, create a profile for the user
         const { error: profileError } = await supabase
           .from('profiles')
           .upsert({ 
@@ -77,13 +128,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             last_name: lastName,
             username: username,
             updated_at: new Date().toISOString(),
-            // avatar_url can be set later, or a default
           });
 
         if (profileError) {
           console.error('Error creating/updating profile:', profileError);
-          // Even if profile creation fails, the auth user might still be created.
-          // Decide on atomicity or how to handle this. For now, log and show toast.
           toast({ 
             variant: 'destructive', 
             title: 'Profile Creation Error', 
@@ -95,9 +143,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             description: 'Please check your email to verify your account before logging in.' 
           });
         }
+        // Manually set profile here as onAuthStateChange might not pick it up immediately or if profile is created post-email-verification
+        setProfile({
+          id: authData.user.id,
+          first_name: firstName || null,
+          last_name: lastName || null,
+          username: username || null,
+          updated_at: new Date().toISOString(),
+          avatar_url: null, // Add other fields as per your Profile type
+          full_name: null,
+        });
         return authData.user;
       }
-      return null; // Should not happen if signUpError is not thrown
+      return null;
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Sign Up Error', description: (err as SupabaseAuthError).message });
@@ -123,6 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         throw signInError;
       }
+      // Profile will be fetched by onAuthStateChange or initial load
       toast({ title: 'Signed In', description: 'Successfully signed in!' });
       return data.user;
     } catch (err) {
@@ -181,6 +240,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
+      setProfile(null); // Clear profile on sign out
       toast({ title: 'Signed Out', description: 'Successfully signed out.' });
     } catch (err) {
       setError(err as SupabaseAuthError);
@@ -193,6 +253,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     session,
+    profile,
     loading,
     error,
     signUpUser,
