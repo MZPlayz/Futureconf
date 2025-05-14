@@ -10,8 +10,9 @@ import {
   PanelRightOpen,
   PanelRightClose,
   ScreenShareOff,
-  Headphones, // Added for Audio Only
-  EarOff, // Alternative for Audio Only Off, or keep Headphones
+  Headphones,
+  EarOff,
+  Users, // Added for Member List
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -20,13 +21,15 @@ interface ConferenceControlsProps {
   isVideoEnabled: boolean;
   isScreenSharing: boolean;
   isChatPanelOpen: boolean;
-  isAudioOnly: boolean; // Added
+  isAudioOnly: boolean;
+  isMemberListOpen: boolean; // Added
   onMuteToggle: () => void;
   onVideoToggle: () => void;
   onScreenShareToggle: () => void;
   onEndCall: () => void;
   onChatToggle: () => void;
-  onAudioOnlyToggle: () => void; // Added
+  onAudioOnlyToggle: () => void;
+  onMemberListToggle: () => void; // Added
   hasCameraPermission: boolean | null;
 }
 
@@ -35,13 +38,15 @@ export function ConferenceControls({
   isVideoEnabled,
   isScreenSharing,
   isChatPanelOpen,
-  isAudioOnly, // Added
+  isAudioOnly,
+  isMemberListOpen, // Added
   onMuteToggle,
   onVideoToggle,
   onScreenShareToggle,
   onEndCall,
   onChatToggle,
-  onAudioOnlyToggle, // Added
+  onAudioOnlyToggle,
+  onMemberListToggle, // Added
   hasCameraPermission,
 }: ConferenceControlsProps) {
   const controlButtonClass = "rounded-full w-10 h-10 p-2 transition-colors duration-150 ease-in-out";
@@ -95,7 +100,7 @@ export function ConferenceControls({
               onClick={onAudioOnlyToggle}
               className={`${controlButtonClass} ${isAudioOnly ? activeControlButtonClass : 'hover:bg-muted'}`}
               aria-label={isAudioOnly ? "Disable Audio Only" : "Enable Audio Only"}
-              disabled={permissionDenied} // Mic permission is still relevant
+              disabled={permissionDenied}
             >
               {isAudioOnly ? <EarOff className="w-4 h-4" /> : <Headphones className="w-4 h-4" />}
             </Button>
@@ -119,6 +124,23 @@ export function ConferenceControls({
           </TooltipTrigger>
           <TooltipContent>
             <p>{isScreenSharing ? "Stop Sharing" : "Share Screen"}</p>
+          </TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onMemberListToggle} // Updated
+              className={`${controlButtonClass} ${isMemberListOpen ? activeControlButtonClass : 'hover:bg-muted'}`}
+              aria-label={isMemberListOpen ? "Hide Members" : "Show Members"}
+            >
+              <Users className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{isMemberListOpen ? "Hide Member List" : "Show Member List"}</p>
           </TooltipContent>
         </Tooltip>
 

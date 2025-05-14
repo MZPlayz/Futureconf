@@ -5,11 +5,12 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { VideoGrid } from '@/components/conference/video-grid';
 import { ConferenceControls } from '@/components/conference/conference-controls';
 import { ChatPanel } from '@/components/chat/chat-panel';
-import type { ChatMessage, Participant } from '@/types';
+import { MemberListPanel } from '@/components/conference/member-list-panel'; // Added
+import type { ChatMessage, Participant, UserRoleType } from '@/types';
 import { suggestReplies } from '@/ai/flows/suggest-replies';
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun, ChevronsLeftRight, Headphones } from 'lucide-react';
+import { AlertTriangle, RadioTower, Maximize, Zap, Settings2, Loader2, LogOut, Minimize, Moon, Sun, ChevronsLeftRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import Link from 'next/link';
@@ -18,8 +19,21 @@ import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
+const defaultRoles: Record<string, UserRoleType> = {
+  admin: { name: 'Admin', color: '#EF4444', order: 1 }, // red-500
+  moderator: { name: 'Moderator', color: '#3B82F6', order: 2 }, // blue-500
+  member: { name: 'Member', color: '#22C55E', order: 3 }, // green-500
+  viewer: { name: 'Viewer', color: '#A1A1AA', order: 4 }, // zinc-400
+  host: { name: 'Host', color: '#14B8A6', order: 0 }, // teal-500
+};
 
-const initialParticipants: Participant[] = [];
+const initialParticipants: Participant[] = [
+  // Dummy participants for member list testing
+  { id: 'participant-1', name: 'Alice Wonderland', avatar: 'https://placehold.co/200x200.png', dataAiHint: 'woman smiling', role: defaultRoles.member, status: 'online', isLocal: false, isVideoEnabled: true, isMuted: false },
+  { id: 'participant-2', name: 'Bob The Builder', avatar: 'https://placehold.co/200x200.png', dataAiHint: 'man working', role: defaultRoles.moderator, status: 'online', isLocal: false, isVideoEnabled: false, isMuted: true },
+  { id: 'participant-3', name: 'Charlie Chaplin', avatar: 'https://placehold.co/200x200.png', dataAiHint: 'classic actor', role: defaultRoles.admin, status: 'online', isLocal: false, isVideoEnabled: true, isMuted: false },
+  { id: 'participant-4', name: 'Diana Prince', avatar: 'https://placehold.co/200x200.png', dataAiHint: 'heroine portrait', role: defaultRoles.member, status: 'online', isLocal: false, isVideoEnabled: true, isMuted: true },
+];
 const initialMessages: ChatMessage[] = [];
 
 export default function FutureConfPage() {
@@ -32,11 +46,12 @@ export default function FutureConfPage() {
   const [isSmartRepliesLoading, setIsSmartRepliesLoading] = useState(false);
   
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(true);
+  const [isMemberListOpen, setIsMemberListOpen] = useState(false); // Added state for member list
   const [participants, setParticipants] = useState<Participant[]>(initialParticipants);
   
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoEnabled, setIsVideoEnabled] = useState(false); 
-  const [isAudioOnly, setIsAudioOnly] = useState(false); // New state for audio-only mode
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
   const [screenSharingParticipantId, setScreenSharingParticipantId] = useState<string | null>(null);
 
@@ -49,8 +64,10 @@ export default function FutureConfPage() {
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [theme, setTheme] = useState('dark');
 
-  const [isResizing, setIsResizing] = useState(false);
+  const [isResizingChat, setIsResizingChat] = useState(false);
   const [chatPanelWidth, setChatPanelWidth] = useState(300); 
+  const [isResizingMembers, setIsResizingMembers] = useState(false);
+  const [memberListWidth, setMemberListWidth] = useState(240);
 
 
   useEffect(() => {
@@ -77,20 +94,22 @@ export default function FutureConfPage() {
       const localParticipant: Participant = {
         id: user.id, 
         name: user.email?.split('@')[0] || 'You',
-        avatar: `https://picsum.photos/seed/${user.id}/200/200`, 
-        isHost: true, 
-        isSpeaking: false, 
+        avatar: `https://placehold.co/200x200.png?text=${user.email?.charAt(0).toUpperCase() || 'U'}`, 
         dataAiHint: 'person happy',
         isLocal: true,
         isVideoEnabled: false, 
         isMuted: false, 
+        role: defaultRoles.host, // Assign a default role to local user
+        status: 'online',
       };
       setParticipants(prev => {
         const existingLocal = prev.find(p => p.isLocal);
         if (existingLocal) {
           return prev.map(p => p.isLocal ? {...localParticipant, ...p } : p);
         }
-        return [localParticipant, ...prev.filter(p => !p.isLocal)];
+        // Add local participant and keep existing dummy participants for testing member list
+        const otherParticipants = prev.filter(p => !p.isLocal);
+        return [localParticipant, ...otherParticipants];
       });
       setMessages([]); 
     }
@@ -130,7 +149,7 @@ export default function FutureConfPage() {
           if (isMounted) {
             setLocalCameraStream(stream);
             setHasCameraPermission(true);
-            if (!isAudioOnly) setIsVideoEnabled(true); // Only enable video if not in audio-only
+            if (!isAudioOnly) setIsVideoEnabled(true);
             setIsMuted(false); 
             setParticipants(prev => prev.map(p => p.isLocal ? {...p, isVideoEnabled: !isAudioOnly, isMuted: false } : p));
           }
@@ -174,7 +193,7 @@ export default function FutureConfPage() {
       document.removeEventListener('fullscreenchange', handleFullScreenChange);
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [toast, user, isAudioOnly]); // Added isAudioOnly to dependencies
+  }, [toast, user, isAudioOnly]);
 
 
   const handleSendMessage = useCallback((text: string) => {
@@ -185,7 +204,7 @@ export default function FutureConfPage() {
       text,
       timestamp: new Date(),
       isOwn: true,
-      avatar: `https://picsum.photos/seed/${user.id}/40/40`
+      avatar: `https://placehold.co/40x40.png?text=${user.email?.charAt(0).toUpperCase() || 'U'}`
     };
     setMessages(prevMessages => [...prevMessages, newMessage]);
     setCurrentMessage('');
@@ -225,6 +244,7 @@ export default function FutureConfPage() {
   };
 
   const toggleChatPanel = () => setIsChatPanelOpen(prev => !prev);
+  const toggleMemberListPanel = () => setIsMemberListOpen(prev => !prev); // Added
 
   const handleMuteToggle = () => {
     if (!user) return; 
@@ -282,18 +302,13 @@ export default function FutureConfPage() {
     setIsAudioOnly(newIsAudioOnly);
 
     if (newIsAudioOnly) {
-      // Turn off video if it's on
       if (isVideoEnabled && localCameraStream) {
         localCameraStream.getVideoTracks().forEach(track => track.enabled = false);
       }
-      setIsVideoEnabled(false); // Explicitly set video to off
+      setIsVideoEnabled(false); 
       setParticipants(prev => prev.map(p => p.isLocal ? { ...p, isVideoEnabled: false } : p));
       toast({ title: "Audio Only Mode Enabled", description: "Video has been turned off." });
     } else {
-      // Turning off audio-only doesn't automatically turn video back on.
-      // User needs to toggle video separately if desired.
-      // isVideoEnabled state will retain its previous value before audio-only was turned on,
-      // or remain false if it was already false.
       toast({ title: "Audio Only Mode Disabled", description: "You can now enable video if you wish." });
     }
   };
@@ -312,7 +327,6 @@ export default function FutureConfPage() {
                   setIsScreenSharing(false);
                   setLocalScreenStream(null);
                   setScreenSharingParticipantId(null);
-                  // If video was enabled (and not in audio-only), re-enable camera video track
                   if (isVideoEnabled && localCameraStream && !isAudioOnly) { 
                      localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
                   }
@@ -322,7 +336,6 @@ export default function FutureConfPage() {
               setLocalScreenStream(stream);
               setIsScreenSharing(true);
               setScreenSharingParticipantId(youParticipant.id);
-              // Disable camera video track if video was enabled (and not in audio-only)
               if (isVideoEnabled && localCameraStream && !isAudioOnly) { 
                 localCameraStream.getVideoTracks().forEach(track => track.enabled = false);
               }
@@ -340,7 +353,6 @@ export default function FutureConfPage() {
         setLocalScreenStream(null);
         setIsScreenSharing(false);
         setScreenSharingParticipantId(null);
-        // If video was enabled (and not in audio-only), re-enable camera video track
         if (isVideoEnabled && localCameraStream && !isAudioOnly) { 
            localCameraStream.getVideoTracks().forEach(track => track.enabled = true);
         }
@@ -371,7 +383,7 @@ export default function FutureConfPage() {
         isScreenSharing: false
     })));
     setIsVideoEnabled(false);
-    setIsAudioOnly(false); // Reset audio-only mode
+    setIsAudioOnly(false);
     setIsMuted(true); 
     setIsScreenSharing(false);
     setScreenSharingParticipantId(null);
@@ -382,7 +394,6 @@ export default function FutureConfPage() {
     if (p.isLocal) {
         let mediaStreamToUse: MediaStream | null = null;
         const isCurrentlyScreenSharing = isScreenSharing && p.id === screenSharingParticipantId;
-        // Video is enabled only if not in audio-only mode and video is toggled on
         const actualIsVideoEnabled = isVideoEnabled && !isAudioOnly;
 
         if (isCurrentlyScreenSharing && localScreenStream) {
@@ -402,34 +413,67 @@ export default function FutureConfPage() {
     return {...p, mediaStream: null}; 
   });
 
-  const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
-    setIsResizing(true);
+  const startResizingChatPanel = useCallback((mouseDownEvent: React.MouseEvent) => {
+    setIsResizingChat(true);
     mouseDownEvent.preventDefault();
   }, []);
 
-  const stopResizing = useCallback(() => {
-    setIsResizing(false);
+  const stopResizingChatPanel = useCallback(() => {
+    setIsResizingChat(false);
   }, []);
 
-  const resize = useCallback((mouseMoveEvent: MouseEvent) => {
-    if (isResizing) {
-      let newWidth = window.innerWidth - mouseMoveEvent.clientX;
+  const resizeChatPanel = useCallback((mouseMoveEvent: MouseEvent) => {
+    if (isResizingChat) {
+      let newWidth = window.innerWidth - mouseMoveEvent.clientX - (isMemberListOpen ? memberListWidth + 10 : 0) ;
       if (newWidth < 200) newWidth = 200; 
       if (newWidth > window.innerWidth / 2) newWidth = window.innerWidth / 2; 
       setChatPanelWidth(newWidth);
     }
-  }, [isResizing]);
+  }, [isResizingChat, isMemberListOpen, memberListWidth]);
 
   useEffect(() => {
-    if(isResizing){
-        window.addEventListener('mousemove', resize);
-        window.addEventListener('mouseup', stopResizing);
+    if(isResizingChat){
+        window.addEventListener('mousemove', resizeChatPanel);
+        window.addEventListener('mouseup', stopResizingChatPanel);
     }
     return () => {
-        window.removeEventListener('mousemove', resize);
-        window.removeEventListener('mouseup', stopResizing);
+        window.removeEventListener('mousemove', resizeChatPanel);
+        window.removeEventListener('mouseup', stopResizingChatPanel);
     };
-  }, [isResizing, resize, stopResizing]);
+  }, [isResizingChat, resizeChatPanel, stopResizingChatPanel]);
+
+
+  const startResizingMemberList = useCallback((mouseDownEvent: React.MouseEvent) => {
+    setIsResizingMembers(true);
+    mouseDownEvent.preventDefault();
+  }, []);
+
+  const stopResizingMemberList = useCallback(() => {
+    setIsResizingMembers(false);
+  }, []);
+
+  const resizeMemberList = useCallback((mouseMoveEvent: MouseEvent) => {
+    if (isResizingMembers) {
+      let newWidth = window.innerWidth - mouseMoveEvent.clientX;
+      if (isChatPanelOpen) newWidth -= (chatPanelWidth + 10);
+
+      if (newWidth < 200) newWidth = 200; 
+      if (newWidth > window.innerWidth / 2.5) newWidth = window.innerWidth / 2.5; 
+      setMemberListWidth(newWidth);
+    }
+  }, [isResizingMembers, isChatPanelOpen, chatPanelWidth]);
+
+  useEffect(() => {
+    if(isResizingMembers){
+        window.addEventListener('mousemove', resizeMemberList);
+        window.addEventListener('mouseup', stopResizingMemberList);
+    }
+    return () => {
+        window.removeEventListener('mousemove', resizeMemberList);
+        window.removeEventListener('mouseup', stopResizingMemberList);
+    };
+  }, [isResizingMembers, resizeMemberList, stopResizingMemberList]);
+
 
   if (authLoading || !user) {
     return (
@@ -471,7 +515,6 @@ export default function FutureConfPage() {
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>Toggle Theme</p></TooltipContent>
                 </Tooltip>
-
                <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm">
@@ -480,7 +523,6 @@ export default function FutureConfPage() {
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>AI Features (Soon)</p></TooltipContent>
                 </Tooltip>
-
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm">
@@ -489,7 +531,6 @@ export default function FutureConfPage() {
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="text-xs"><p>Settings (Soon)</p></TooltipContent>
                 </Tooltip>
-
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="w-6 h-6 rounded-sm" onClick={toggleFullScreen}>
@@ -535,28 +576,54 @@ export default function FutureConfPage() {
             isScreenSharing={isScreenSharing}
             isChatPanelOpen={isChatPanelOpen}
             isAudioOnly={isAudioOnly}
+            isMemberListOpen={isMemberListOpen} // Pass state
             onMuteToggle={handleMuteToggle}
             onVideoToggle={handleVideoToggle}
             onScreenShareToggle={handleScreenShareToggle}
             onEndCall={() => handleEndCall(false)}
             onChatToggle={toggleChatPanel}
             onAudioOnlyToggle={handleAudioOnlyToggle}
+            onMemberListToggle={toggleMemberListPanel} // Pass handler
             hasCameraPermission={hasCameraPermission}
         />
       </main>
+      
+      {isMemberListOpen && (
+        <>
+        <div 
+            onMouseDown={startResizingMemberList}
+            className={cn(
+                "hidden md:flex items-center justify-center w-2.5 cursor-col-resize group hover:bg-primary/20 transition-colors duration-150",
+                isResizingMembers && "bg-primary/30"
+            )}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Resize member list panel"
+        >
+            <ChevronsLeftRight className={cn("h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors", isResizingMembers && "text-primary")} />
+        </div>
+        <div
+          className="h-full flex flex-col border-l border-border bg-card/50 backdrop-blur-md shadow-xl"
+          style={{ width: `${memberListWidth}px` }}
+        >
+          <MemberListPanel participants={processedParticipants} />
+        </div>
+        </>
+      )}
+
       {isChatPanelOpen && (
         <>
         <div 
-            onMouseDown={startResizing}
+            onMouseDown={startResizingChatPanel}
             className={cn(
                 "hidden md:flex items-center justify-center w-2.5 cursor-col-resize group hover:bg-primary/20 transition-colors duration-150",
-                isResizing && "bg-primary/30"
+                isResizingChat && "bg-primary/30"
             )}
             role="separator"
             aria-orientation="vertical"
             aria-label="Resize chat panel"
         >
-            <ChevronsLeftRight className={cn("h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors", isResizing && "text-primary")} />
+            <ChevronsLeftRight className={cn("h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors", isResizingChat && "text-primary")} />
         </div>
         <div 
           className="h-full flex flex-col border-l border-border bg-card/50 backdrop-blur-md shadow-xl md:shadow-lg"

@@ -72,17 +72,19 @@ export interface Database {
           {
             foreignKeyName: "meetings_created_by_fkey";
             columns: ["created_by"];
-            referencedRelation: "profiles"; // Or directly to auth.users if profiles table is just for additional info
+            referencedRelation: "profiles"; 
             referencedColumns: ["id"];
           }
         ];
       };
       meeting_participants: {
         Row: {
-          meeting_id: string; // Foreign key to meetings.id
-          user_id: string; // Foreign key to profiles.id (or auth.users.id)
+          meeting_id: string; 
+          user_id: string; 
           joined_at: string;
-          role: "host" | "participant" | "moderator"; // UserRole
+          // This role is specific to the meeting context (e.g. who is HOST of THIS meeting)
+          // It can be different from a user's global roles.
+          role: "host" | "participant" | "moderator"; 
         };
         Insert: {
           meeting_id: string;
@@ -103,7 +105,57 @@ export interface Database {
           {
             foreignKeyName: "meeting_participants_user_id_fkey";
             columns: ["user_id"];
-            referencedRelation: "profiles"; // Or directly to auth.users
+            referencedRelation: "profiles"; 
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      // Conceptual: Table for global roles
+      roles: {
+        Row: {
+          id: string; // UUID, primary key
+          name: string;
+          color: string; // Hex color string e.g., #FF0000
+          permissions: Json | null; // JSONB for storing array of permission strings
+          order: number | null; // For hierarchy
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          color: string;
+          permissions?: Json | null;
+          order?: number | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          color?: string;
+          permissions?: Json | null;
+          order?: number | null;
+        };
+        Relationships: [];
+      };
+      // Conceptual: Join table for user global roles
+      user_roles: {
+        Row: {
+          user_id: string; // Foreign key to auth.users.id or profiles.id
+          role_id: string; // Foreign key to roles.id
+        };
+        Insert: {
+          user_id: string;
+          role_id: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "user_roles_role_id_fkey";
+            columns: ["role_id"];
+            referencedRelation: "roles";
             referencedColumns: ["id"];
           }
         ];
@@ -116,7 +168,8 @@ export interface Database {
       [_ in never]: never;
     };
     Enums: {
-      [_ in never]: never;
+      // Example of how meeting_participant_role enum might be defined if used directly in DB
+      // meeting_participant_role: "host" | "participant" | "moderator";
     };
     CompositeTypes: {
       [_ in never]: never;
