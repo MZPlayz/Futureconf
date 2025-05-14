@@ -8,17 +8,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"; // Removed DialogDescription as it's unused here
 import { 
   RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, 
   LayoutDashboard, MessageSquare, BarChart3, Users2, CalendarDays, PlusCircle,
-  Home, Compass, Plus, MessageCircle, PanelLeft
+  Home, Compass, Plus, MessageCircle, PanelLeft // Added Home, Compass, Plus, MessageCircle, PanelLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
@@ -38,10 +36,10 @@ import type { Meeting, Server } from '@/types';
 import {
   SidebarProvider,
   Sidebar,
-  SidebarHeader,
+  SidebarHeader, // Unused, can be removed if not planned
   SidebarContent,
-  SidebarFooter,
-  SidebarMenu,
+  SidebarFooter, // Unused, can be removed if not planned
+  SidebarMenu, // Unused, can be removed if not planned
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarTrigger,
@@ -52,7 +50,7 @@ import { cn } from '@/lib/utils';
 
 
 const dummyServers: Server[] = [
-  { id: 'home', name: 'Home', isHome: true, iconText: 'H' },
+  { id: 'home', name: 'Direct Messages', isHome: true, iconText: 'DM' }, // Changed name
   { id: 'server1', name: 'FutureConf HQ', imageUrl: 'https://placehold.co/48x48/008080/FFFFFF.png?text=FC', dataAiHint: 'company logo', unreadCount: 3 },
   { id: 'server2', name: 'Gaming Den', imageUrl: 'https://placehold.co/48x48/F97300/FFFFFF.png?text=GD', dataAiHint: 'joystick', unreadCount: 10 },
   { id: 'server3', name: 'Art Collective', imageUrl: 'https://placehold.co/48x48/FFFFFF/000000.png?text=AC', dataAiHint: 'paint palette' },
@@ -67,7 +65,7 @@ const ACTIVE_SERVER_ID = 'home';
 
 const DashboardHeaderContent = () => {
   const { user, signOutUser } = useAuth();
-  const { toggleSidebar, isMobile } = useSidebar(); 
+  const { toggleSidebar } = useSidebar(); 
 
   const handleLogout = async () => {
     await signOutUser();
@@ -231,8 +229,7 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
-  // const [isMeetingsDialogOpen, setIsMeetingsDialogOpen] = useState(false); // Not strictly needed if using DialogTrigger
-
+  
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
@@ -267,62 +264,57 @@ export default function DashboardPage() {
         variant="sidebar" 
         collapsible="icon"
         className="border-r border-sidebar-border bg-sidebar" 
-        style={{ '--sidebar-width': '280px', '--sidebar-width-icon': '72px' } as React.CSSProperties} // Adjusted icon width
+        style={{ '--sidebar-width': '280px', '--sidebar-width-icon': '72px' } as React.CSSProperties} 
       >
-        <SidebarContent className="p-1.5 flex flex-col gap-1.5">
+        <SidebarContent className="p-3 flex flex-col gap-2"> {/* Adjusted padding and gap */}
           {dummyServers.map((server) => (
-            <SidebarMenuItem key={server.id} className="relative"> {/* Added relative for pill positioning */}
+            <SidebarMenuItem key={server.id} className="relative m-0 p-0"> {/* Ensure no extra margin/padding */}
                {/* Unread / Active Indicator */}
                { (server.id === ACTIVE_SERVER_ID || (server.unreadCount && server.unreadCount > 0)) && 
-                 !server.isHome && !server.action && (
+                 !server.action && ( // Don't show pill for action buttons
                 <span
                   className={cn(
-                    "absolute left-0 top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-full transition-all duration-200 ease-in-out",
-                    server.id === ACTIVE_SERVER_ID ? "h-7" : "h-2" // Taller for active, shorter for unread
+                    "absolute left-[-12px] top-1/2 -translate-y-1/2 w-1 bg-white rounded-r-md transition-all duration-200 ease-in-out",
+                    server.id === ACTIVE_SERVER_ID ? "h-10" : "h-2" // Taller for active, shorter for unread
                   )}
                 />
               )}
               <SidebarMenuButton
-                variant="default" // Variant default means it uses sidebar-accent for hover
-                size="lg" // size="lg" is h-12, but we customize size below
+                variant="default"
+                size="lg" 
                 className={cn(
-                  "group justify-center h-[50px] w-[50px] p-0", // Custom size
-                  "rounded-full", // Base is circular
-                  "hover:rounded-xl", // Hover makes it squircle
-                  server.id === ACTIVE_SERVER_ID && "rounded-xl bg-primary hover:bg-primary/90", // Active server styling
-                  !(server.id === ACTIVE_SERVER_ID) && "data-[active=true]:rounded-xl data-[active=true]:bg-primary data-[active=true]:hover:bg-primary/90", // Fallback active styling if needed (though custom above is better)
-                  "transition-all duration-200 ease-in-out",
-                  (server.action === 'add' || server.action === 'explore') && 
-                    "bg-sidebar-accent hover:bg-green-500 text-green-500 hover:text-white" // Styling for Add/Explore
+                  "group justify-center h-12 w-12 p-0", // 48px
+                  (server.action === 'add' || server.action === 'explore') ? 
+                    "rounded-full bg-sidebar-accent hover:bg-green-500 text-green-500 hover:text-white hover:rounded-2xl" :
+                    "rounded-3xl hover:rounded-2xl", 
+                  server.id === ACTIVE_SERVER_ID && !server.action && 
+                    "rounded-2xl bg-primary hover:bg-primary/90", // Active server (non-action)
+                  "transition-all duration-200 ease-in-out"
                 )}
                 tooltip={{
                   children: server.name,
                   side: "right",
                   align: "center",
-                  className: "ml-2", // Ensure tooltip is positioned nicely
+                  className: "ml-2", 
                 }}
-                // The data-active prop is set by SidebarMenuButton based on isActive prop, which we are not using directly here.
-                // For demo, we are using server.id === ACTIVE_SERVER_ID for styling active server.
-                // In a real app, you'd manage active server state.
                 onClick={() => handleServerClick(server.name)}
+                data-active={server.id === ACTIVE_SERVER_ID && !server.action}
               >
                 {server.imageUrl ? (
                   <Avatar className={cn(
-                    "h-[42px] w-[42px] rounded-full", // Custom avatar size, remains circular
+                    "h-full w-full rounded-full", // Avatar fills the button
                     "transition-all duration-200 ease-in-out"
-                    // Avatar shape itself doesn't need to change on hover/active if button clips it
                   )}>
                     <AvatarImage src={server.imageUrl} alt={server.name} data-ai-hint={server.dataAiHint} />
-                    <AvatarFallback className="bg-muted text-muted-foreground rounded-full">
+                    <AvatarFallback className="bg-muted text-muted-foreground rounded-full text-lg">
                       {server.iconText || server.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                 ) : (
-                  <div className="h-[42px] w-[42px] flex items-center justify-center"> {/* Container for Lucide icons */}
+                  <div className="h-full w-full flex items-center justify-center">
                      {getIconForServer(server)}
                   </div>
                 )}
-                {/* Removed original unread count indicator logic, replaced by the pill above */}
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -339,7 +331,7 @@ export default function DashboardPage() {
         <GridBackground className="flex-1 flex flex-col overflow-y-auto">
           {/* Hero Section */}
           <section
-            className="relative flex flex-col items-center justify-center text-center p-6 sm:p-10 md:p-16 flex-grow min-h-[calc(70vh-60px)]"
+            className="relative flex flex-col items-center justify-center text-center p-6 sm:p-10 md:p-16 flex-grow min-h-[calc(70vh-60px)]" 
           >
             <div className="relative z-10 max-w-2xl">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-5 text-center">
@@ -387,27 +379,14 @@ export default function DashboardPage() {
                   <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
                       <DialogTitle>Active Meetings</DialogTitle>
-                      <DialogDescription>
+                      <CardDescription className="text-sm text-muted-foreground pt-1"> {/* Changed DialogDescription to CardDescription for consistency */}
                         View ongoing sessions or start a new one.
-                      </DialogDescription>
+                      </CardDescription>
                     </DialogHeader>
                     <div className="py-4">
-                      {/* Placeholder for list of active meetings */}
                       <p className="text-sm text-muted-foreground text-center">
                         No active meetings currently.
                       </p>
-                      {/* Example of how meetings might be listed:
-                      <div className="space-y-2 mt-4">
-                        {meetings.filter(m => m.status === 'ongoing').map(meeting => (
-                          <div key={meeting.id} className="flex justify-between items-center p-2 border rounded-md">
-                            <span>{meeting.name}</span>
-                            <Link href={`/conference?id=${meeting.id}`} passHref>
-                              <Button variant="outline" size="sm">Join</Button>
-                            </Link>
-                          </div>
-                        ))}
-                      </div>
-                      */}
                     </div>
                     <DialogFooter>
                       <DialogClose asChild>
@@ -519,7 +498,7 @@ export default function DashboardPage() {
             className="relative flex flex-col items-center justify-center p-3 sm:p-5 md:p-6 min-h-[30vh] pb-10 sm:pb-12 md:pb-16"
           >
             <div className="relative z-10 max-w-2xl mx-auto w-full">
-              <Card className="rounded-lg border border-border/50 bg-card/50 backdrop-blur-sm shadow-md w-full">
+              <Card className="rounded-lg border border-border/50 bg-card/70 backdrop-blur-sm shadow-md w-full">
                 <CardHeader className="p-3 sm:p-4">
                   <CardTitle className="text-sm sm:text-base font-semibold text-card-foreground text-center">Activity Feed</CardTitle>
                   <CardDescription className="text-[10px] sm:text-xs text-center text-muted-foreground">Your recent platform engagement.</CardDescription>
