@@ -6,6 +6,16 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { 
   RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, 
   LayoutDashboard, MessageSquare, BarChart3, Users2, CalendarDays, PlusCircle,
   Home, Compass, Plus, MessageCircle, PanelLeft
@@ -54,7 +64,7 @@ const dummyServers: Server[] = [
 
 const DashboardHeaderContent = () => {
   const { user, signOutUser } = useAuth();
-  const { toggleSidebar, isMobile } = useSidebar(); // Get toggleSidebar from context
+  const { toggleSidebar, isMobile } = useSidebar(); 
 
   const handleLogout = async () => {
     await signOutUser();
@@ -69,7 +79,7 @@ const DashboardHeaderContent = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden h-8 w-8" // Show only on mobile for this specific trigger
+          className="md:hidden h-8 w-8" 
           onClick={toggleSidebar} 
           aria-label="Toggle server list"
         >
@@ -218,6 +228,7 @@ export default function DashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  // const [isMeetingsDialogOpen, setIsMeetingsDialogOpen] = useState(false); // Not strictly needed if using DialogTrigger
 
   useEffect(() => {
     if (!loading && !user) {
@@ -234,9 +245,7 @@ export default function DashboardPage() {
   }
 
   const handleServerClick = (serverName: string) => {
-    // Placeholder action
     console.log(`Clicked on server: ${serverName}`);
-    // In a real app, this would navigate to the server's channels or specific view
   };
   
   const getIconForServer = (server: Server) => {
@@ -250,9 +259,9 @@ export default function DashboardPage() {
     <SidebarProvider defaultOpen={true}>
       <Sidebar
         side="left"
-        variant="sidebar" // Keeps it always visible on desktop unless collapsed
+        variant="sidebar" 
         collapsible="icon"
-        className="border-r border-sidebar-border bg-sidebar" // Ensure sidebar styles are applied
+        className="border-r border-sidebar-border bg-sidebar" 
         style={{ '--sidebar-width': '280px', '--sidebar-width-icon': '64px' } as React.CSSProperties}
       >
         <SidebarContent className="p-1.5 flex flex-col gap-1.5">
@@ -260,7 +269,7 @@ export default function DashboardPage() {
             <SidebarMenuItem key={server.id} className="group/server-item">
               <SidebarMenuButton
                 variant="default"
-                size="lg" // Makes buttons taller
+                size="lg" 
                 className={cn(
                   "justify-center h-12 w-12 p-0 rounded-full data-[active=true]:bg-primary data-[active=true]:hover:bg-primary/90 group-data-[collapsible=icon]:rounded-xl",
                   "transition-all duration-200 ease-in-out",
@@ -303,7 +312,7 @@ export default function DashboardPage() {
 
       <SidebarInset className="flex flex-col min-h-screen text-foreground antialiased">
         <header className="p-2.5 border-b border-border flex-shrink-0 bg-card/80 shadow-sm sticky top-0 z-40 backdrop-blur-md">
-          <div className="flex items-center justify-between max-w-full sm:px-2 lg:px-3"> {/* Adjusted padding for inset header */}
+          <div className="flex items-center justify-between max-w-full sm:px-2 lg:px-3"> 
             <DashboardHeaderContent />
           </div>
         </header>
@@ -336,25 +345,66 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="grid gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
-                  <CardContent className="p-4 flex flex-col items-center text-center h-full">
-                    <div className="mb-2 sm:mb-3 p-2.5 sm:p-3 bg-primary/10 rounded-full text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
-                      <Video className="h-5 w-5 sm:h-6 sm:w-6" />
+                <Dialog>
+                  <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
+                    <CardContent className="p-4 flex flex-col items-center text-center h-full">
+                      <div className="mb-2 sm:mb-3 p-2.5 sm:p-3 bg-primary/10 rounded-full text-primary transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
+                        <Video className="h-5 w-5 sm:h-6 sm:w-6" />
+                      </div>
+                      <CardTitle className="text-sm sm:text-base font-semibold text-card-foreground mb-1">
+                        Meetings
+                      </CardTitle>
+                      <CardDescription className="text-[11px] sm:text-xs text-muted-foreground mb-3 sm:mb-4 leading-relaxed flex-grow px-1 sm:px-2">
+                        View running meetings or start a new one.
+                      </CardDescription>
+                      <DialogTrigger asChild>
+                        <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-1 sm:py-1.5 rounded-sm text-[11px] sm:text-xs mt-auto">
+                           <Video className="mr-1 h-2.5 w-2.5 sm:mr-1.5 sm:h-3 sm:w-3" /> Open Meetings
+                        </Button>
+                      </DialogTrigger>
+                    </CardContent>
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 sm:h-1 bg-primary/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                  </Card>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Active Meetings</DialogTitle>
+                      <DialogDescription>
+                        View ongoing sessions or start a new one.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      {/* Placeholder for list of active meetings */}
+                      <p className="text-sm text-muted-foreground text-center">
+                        No active meetings currently.
+                      </p>
+                      {/* Example of how meetings might be listed:
+                      <div className="space-y-2 mt-4">
+                        {meetings.filter(m => m.status === 'ongoing').map(meeting => (
+                          <div key={meeting.id} className="flex justify-between items-center p-2 border rounded-md">
+                            <span>{meeting.name}</span>
+                            <Link href={`/conference?id=${meeting.id}`} passHref>
+                              <Button variant="outline" size="sm">Join</Button>
+                            </Link>
+                          </div>
+                        ))}
+                      </div>
+                      */}
                     </div>
-                    <CardTitle className="text-sm sm:text-base font-semibold text-card-foreground mb-1">
-                      New Meeting
-                    </CardTitle>
-                    <CardDescription className="text-[11px] sm:text-xs text-muted-foreground mb-3 sm:mb-4 leading-relaxed flex-grow px-1 sm:px-2">
-                      Launch a new video conference instantly.
-                    </CardDescription>
-                    <Link href="/conference" passHref className="w-full mt-auto">
-                      <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-1 sm:py-1.5 rounded-sm text-[11px] sm:text-xs">
-                        <Video className="mr-1 h-2.5 w-2.5 sm:mr-1.5 sm:h-3 sm:w-3" /> Start Meeting
-                      </Button>
-                    </Link>
-                  </CardContent>
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 sm:h-1 bg-primary/70 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
-                </Card>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button" variant="outline">
+                          Close
+                        </Button>
+                      </DialogClose>
+                      <Link href="/conference" passHref>
+                        <Button>
+                          <PlusCircle className="mr-2 h-4 w-4" /> Create New Meeting
+                        </Button>
+                      </Link>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
                 <Card className="group relative overflow-hidden rounded-lg border border-border/50 bg-card/70 backdrop-blur-md shadow-lg hover:shadow-primary/20 transition-all duration-300 ease-in-out">
                   <CardContent className="p-4 flex flex-col items-center text-center h-full">
                     <div className="mb-2 sm:mb-3 p-2.5 sm:p-3 bg-muted/40 rounded-full text-muted-foreground transition-all duration-300 group-hover:bg-primary group-hover:text-primary-foreground group-hover:scale-110">
@@ -470,3 +520,4 @@ export default function DashboardPage() {
     </SidebarProvider>
   );
 }
+
