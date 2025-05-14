@@ -21,8 +21,6 @@ export default function SignUpPage() {
   const handleSignUp = async (data: { email: string; password: string }) => {
     setFormLoading(true);
     await signUpUser(data.email, data.password);
-    // User might need to confirm email. 
-    // AuthProvider toast already informs about email verification.
     setFormLoading(false);
   };
 
@@ -47,16 +45,16 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-card/80 p-4">
-       <div className="mb-6 flex flex-col items-center space-y-2">
-        <RadioTower className="h-10 w-10 text-primary" /> {/* Adjusted size */}
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background to-background p-4"> {/* Changed background */}
+       <div className="mb-8 flex flex-col items-center space-y-2"> {/* Increased mb */}
+        <RadioTower className="h-10 w-10 text-primary" />
         <h1 className="text-3xl font-bold text-foreground">FutureConf</h1>
       </div>
       <AuthForm 
         isSignUp 
         onSubmit={handleSignUp} 
         onGoogleSignIn={handleGoogleSignUp}
-        onGitHubSignIn={handleGitHubSignUp} // Added
+        onGitHubSignIn={handleGitHubSignUp}
         loading={formLoading || authLoading} 
       />
     </div>
