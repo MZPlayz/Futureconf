@@ -48,3 +48,15 @@ export interface MeetingParticipant {
   role: "host" | "participant" | "moderator"; // Kept simple for meeting context
   joined_at: Date;
 }
+
+export interface Server {
+  id: string;
+  name: string;
+  iconUrl?: string;
+  imageUrl?: string; // For next/image if direct URL
+  iconText?: string; // For Avatar fallback
+  dataAiHint?: string;
+  unreadCount?: number;
+  isHome?: boolean;
+  action?: 'add' | 'explore'; // For special action buttons
+}
