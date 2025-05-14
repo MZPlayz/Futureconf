@@ -7,13 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label'; // Added
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Removed CardDescription, CardFooter
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card'; // Removed CardHeader
 import { Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 const GoogleIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18px" height="18px"> {/* Adjusted size */}
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18px" height="18px">
     <path fill="#EA4335" d="M24 9.5c3.405 0 6.003 1.153 7.999 3.024l5.966-5.966C34.33 3.291 29.715 1.5 24 1.5c-6.627 0-12.327 3.915-14.999 9.818l7.159 5.522C17.927 12.475 20.718 9.5 24 9.5z"/>
     <path fill="#4285F4" d="M46.5 24c0-1.653-.146-3.246-.422-4.781H24v9.026h12.839c-.561 3.068-2.258 5.617-4.818 7.377l7.122 5.504C43.348 37.438 46.5 31.261 46.5 24z"/>
     <path fill="#FBBC05" d="M9.001 28.621c-.504-1.522-.789-3.142-.789-4.833s.285-3.311.789-4.833L1.842 13.45C.663 16.451 0 19.995 0 23.788s.663 7.337 1.842 10.338l7.159-5.505z"/>
@@ -23,7 +23,7 @@ const GoogleIcon = () => (
 );
 
 const GitHubIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18px" height="18px" fill="currentColor" className="text-foreground"> {/* Adjusted size */}
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="18px" height="18px" fill="currentColor" className="text-foreground">
     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
   </svg>
 );
@@ -52,16 +52,12 @@ export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, onGitHubS
     resolver: zodResolver(formSchema),
   });
 
-  const title = isSignUp ? 'Create an account' : 'Sign in to FutureConf';
   const linkText = isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
   const linkHref = isSignUp ? '/login' : '/signup';
 
   return (
     <Card className="w-full max-w-sm shadow-xl bg-card/90 backdrop-blur-sm rounded-lg border-border/50">
-      <CardHeader className="text-center pb-4 pt-6">
-        <CardTitle className="text-2xl font-bold text-foreground">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-6 pb-6 space-y-4">
+      <CardContent className="px-6 py-6 space-y-4"> {/* Adjusted padding since CardHeader is removed */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email" className="text-xs text-muted-foreground">Email</Label>
@@ -116,7 +112,7 @@ export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, onGitHubS
               onClick={onGoogleSignIn}
               disabled={loading}
             >
-              {loading && !onGitHubSignIn ? ( // Show loader only if this is the one clicked or only option
+              {loading && !onGitHubSignIn ? ( 
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <>
@@ -134,7 +130,7 @@ export function AuthForm({ isSignUp = false, onSubmit, onGoogleSignIn, onGitHubS
               onClick={onGitHubSignIn}
               disabled={loading}
             >
-              {loading && !onGoogleSignIn ? ( // Show loader only if this is the one clicked or only option
+              {loading && !onGoogleSignIn ? ( 
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <>
