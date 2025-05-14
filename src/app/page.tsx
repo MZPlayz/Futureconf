@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { 
   RadioTower, Video, Users, Settings, Sparkles, LogOut, Loader2, ArrowDown, UserCircle, 
   LayoutDashboard, MessageSquare, BarChart3, Users2, CalendarDays, PlusCircle,
-  Home, Compass, Plus, MessageCircle // Added for server list
+  Home, Compass, Plus, MessageCircle, PanelLeft // Added PanelLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
