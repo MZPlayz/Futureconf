@@ -16,6 +16,7 @@ interface AuthContextType {
   signInUser: (email: string, password: string) => Promise<SupabaseUser | null>;
   signOutUser: () => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithGitHub: () => Promise<void>; // Added GitHub
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,21 +56,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        // Supabase handles sending confirmation email if enabled in project settings.
-        // options: {
-        //   emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : undefined,
-        // }
       });
       if (signUpError) throw signUpError;
       
-      // Supabase sends a confirmation email by default if enabled in your Supabase project settings.
-      // The user object (data.user) is returned immediately, but the session will be null
-      // until the email is confirmed. onAuthStateChange will update the session eventually.
       toast({ 
         title: 'Account Created', 
         description: 'Please check your email to verify your account before logging in.' 
       });
-      return data.user; // User object is returned, but email_confirmed_at might be null.
+      return data.user;
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Sign Up Error', description: (err as SupabaseAuthError).message });
@@ -88,7 +82,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password,
       });
       if (signInError) {
-        // Check if the error is due to unconfirmed email
         if (signInError.message === 'Email not confirmed') {
            toast({ variant: 'destructive', title: 'Sign In Error', description: 'Please verify your email address before logging in. Check your inbox for a verification link.' });
         } else {
@@ -96,14 +89,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         throw signInError;
       }
-      // onAuthStateChange will handle setting user and session
       toast({ title: 'Signed In', description: 'Successfully signed in!' });
       return data.user;
     } catch (err) {
       setError(err as SupabaseAuthError);
-      // Toast is already handled for specific errors or in the if(signInError) block
       if ((err as SupabaseAuthError).message !== 'Email not confirmed' && !(err as SupabaseAuthError).message.includes('Invalid login credentials')) {
-         // Avoid double-toasting for already handled specific errors
       } else if ((err as SupabaseAuthError).message.includes('Invalid login credentials')) {
         toast({ variant: 'destructive', title: 'Sign In Error', description: 'Invalid login credentials.' });
       }
@@ -124,13 +114,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       if (oauthError) throw oauthError;
-      // User will be redirected. onAuthStateChange will pick up the session on return.
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as SupabaseAuthError).message });
     } finally {
-      // setLoading(false) might not always be reached if redirect is successful.
-      // It's set to false by onAuthStateChange listener.
+      // setLoading(false) is handled by onAuthStateChange
+    }
+  };
+
+  const signInWithGitHub = async (): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/` : undefined,
+        },
+      });
+      if (oauthError) throw oauthError;
+    } catch (err) {
+      setError(err as SupabaseAuthError);
+      toast({ variant: 'destructive', title: 'GitHub Sign In Error', description: (err as SupabaseAuthError).message });
+    } finally {
+      // setLoading(false) is handled by onAuthStateChange
     }
   };
 
@@ -140,7 +147,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
-      // onAuthStateChange will handle setting user and session to null
       toast({ title: 'Signed Out', description: 'Successfully signed out.' });
     } catch (err) {
       setError(err as SupabaseAuthError);
@@ -159,6 +165,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     signInUser,
     signOutUser,
     signInWithGoogle,
+    signInWithGitHub, // Added
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
