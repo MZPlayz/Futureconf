@@ -40,6 +40,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<SupabaseAuthError | null>(null);
   const { toast } = useToast();
 
+  const fetchProfileForUser = async (currentUser: SupabaseUser) => {
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUser.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError.message);
+      if (profileError.message.includes('relation "public.profiles" does not exist')) {
+        toast({
+          variant: 'destructive',
+          title: 'Database Setup Incomplete',
+          description: 'The "profiles" table is missing. Please create it in your Supabase dashboard.',
+        });
+      } else {
+        // Generic error for other profile fetching issues
+        // toast({ variant: 'destructive', title: 'Profile Error', description: 'Could not load your profile data.' });
+      }
+    }
+    setProfile(userProfile || null); // Ensure profile is null if userProfile is undefined/null
+  };
+
+
   useEffect(() => {
     const fetchSessionAndProfile = async () => {
       setLoading(true);
@@ -57,18 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentUser);
 
       if (currentUser) {
-        const { data: userProfile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError.message);
-          // Don't set global error for this, but log it
-          // toast({ variant: 'destructive', title: 'Profile Error', description: 'Could not load your profile data.' });
-        }
-        setProfile(userProfile);
+        await fetchProfileForUser(currentUser);
       } else {
         setProfile(null);
       }
@@ -79,22 +92,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, currentSession) => {
-        setLoading(true);
+        setLoading(true); // Set loading true while auth state changes and profile is fetched
         setSession(currentSession);
         const currentUser = currentSession?.user ?? null;
         setUser(currentUser);
 
         if (currentUser) {
-          const { data: userProfile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', currentUser.id)
-            .single();
-          
-          if (profileError) {
-             console.error('Error fetching profile on auth change:', profileError.message);
-          }
-          setProfile(userProfile);
+          await fetchProfileForUser(currentUser);
         } else {
           setProfile(null);
         }
@@ -132,27 +136,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (profileError) {
           console.error('Error creating/updating profile:', profileError);
-          toast({ 
-            variant: 'destructive', 
-            title: 'Profile Creation Error', 
-            description: 'Your account was created, but profile details could not be saved: ' + profileError.message 
-          });
+          if (profileError.message.includes('relation "public.profiles" does not exist')) {
+             toast({ 
+                variant: 'destructive', 
+                title: 'Database Setup Incomplete', 
+                description: 'Account created, but profile cannot be saved. The "profiles" table is missing.' 
+              });
+          } else {
+            toast({ 
+              variant: 'destructive', 
+              title: 'Profile Creation Error', 
+              description: 'Your account was created, but profile details could not be saved: ' + profileError.message 
+            });
+          }
         } else {
           toast({ 
             title: 'Account Created', 
             description: 'Please check your email to verify your account before logging in.' 
           });
+          // Optimistically set profile here, actual fetch will happen on auth state change
+          setProfile({
+            id: authData.user.id,
+            first_name: firstName || null,
+            last_name: lastName || null,
+            username: username || null,
+            updated_at: new Date().toISOString(),
+            avatar_url: null, 
+            full_name: null,
+          });
         }
-        // Manually set profile here as onAuthStateChange might not pick it up immediately or if profile is created post-email-verification
-        setProfile({
-          id: authData.user.id,
-          first_name: firstName || null,
-          last_name: lastName || null,
-          username: username || null,
-          updated_at: new Date().toISOString(),
-          avatar_url: null, // Add other fields as per your Profile type
-          full_name: null,
-        });
         return authData.user;
       }
       return null;
@@ -182,13 +194,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw signInError;
       }
       // Profile will be fetched by onAuthStateChange or initial load
+      if (data.user) {
+        await fetchProfileForUser(data.user); // Fetch profile immediately after sign-in
+      }
       toast({ title: 'Signed In', description: 'Successfully signed in!' });
       return data.user;
     } catch (err) {
       setError(err as SupabaseAuthError);
       if ((err as SupabaseAuthError).message !== 'Email not confirmed' && !(err as SupabaseAuthError).message.includes('Invalid login credentials')) {
+         // Error already handled by toast inside the try block or generic toast if desired
       } else if ((err as SupabaseAuthError).message.includes('Invalid login credentials')) {
-        toast({ variant: 'destructive', title: 'Sign In Error', description: 'Invalid login credentials.' });
+        // This specific message is already handled by toast inside try block
       }
       return null;
     } finally {
@@ -207,11 +223,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       if (oauthError) throw oauthError;
+      // Profile fetching will be handled by onAuthStateChange
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as SupabaseAuthError).message });
     } finally {
-      // setLoading(false) is handled by onAuthStateChange
+      // setLoading(false) is handled by onAuthStateChange or initial fetch
     }
   };
 
@@ -226,11 +243,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       if (oauthError) throw oauthError;
+      // Profile fetching will be handled by onAuthStateChange
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'GitHub Sign In Error', description: (err as SupabaseAuthError).message });
     } finally {
-      // setLoading(false) is handled by onAuthStateChange
+      // setLoading(false) is handled by onAuthStateChange or initial fetch
     }
   };
 
@@ -240,6 +258,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
+      setUser(null); // Explicitly set user to null
+      setSession(null); // Explicitly set session to null
       setProfile(null); // Clear profile on sign out
       toast({ title: 'Signed Out', description: 'Successfully signed out.' });
     } catch (err) {
@@ -265,3 +285,4 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+    

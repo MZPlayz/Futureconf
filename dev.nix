@@ -1,6 +1,4 @@
+{ pkgs }:
 {
-  dependencies = [
-    pkgs.git
-    pkgs.openssh
-  ];
+  packages = [ pkgs.nano ];
 }
