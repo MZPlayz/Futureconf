@@ -41,26 +41,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { toast } = useToast();
 
   const fetchProfileForUser = async (currentUser: SupabaseUser) => {
-    const { data: userProfile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', currentUser.id)
-      .single();
-
-    if (profileError) {
-      console.error('Error fetching profile:', profileError.message);
-      if (profileError.message.includes('relation "public.profiles" does not exist')) {
-        toast({
-          variant: 'destructive',
-          title: 'Database Setup Incomplete',
-          description: 'The "profiles" table is missing. Please create it in your Supabase dashboard.',
-        });
-      } else {
-        // Generic error for other profile fetching issues
-        // toast({ variant: 'destructive', title: 'Profile Error', description: 'Could not load your profile data.' });
-      }
+    if (!currentUser) {
+      setProfile(null);
+      return;
     }
-    setProfile(userProfile || null); // Ensure profile is null if userProfile is undefined/null
+    try {
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+
+      if (profileError) {
+        if (profileError.code === 'PGRST116') { // "JSON object requested, multiple (or no) rows returned"
+          // This means .single() found 0 or >1 rows.
+          // If 0 rows, it's often a user who exists in auth.users but not in profiles.
+          // This is not a critical app error if the app can handle null profiles.
+          console.warn(`Profile fetch issue for user ${currentUser.id}: ${profileError.message}. This is expected if no profile exists or if there are multiple (which indicates a data issue).`);
+          setProfile(null); // Ensure profile is null
+        } else if (profileError.message.includes('relation "public.profiles" does not exist')) {
+          console.error('Database setup error: "profiles" table does not exist.', profileError);
+          toast({
+            variant: 'destructive',
+            title: 'Database Setup Incomplete',
+            description: 'The "profiles" table is missing. Please ensure it has been created in your Supabase dashboard.',
+          });
+          setProfile(null);
+        } else {
+          // For other, unexpected Supabase errors during profile fetch
+          console.error('Supabase error fetching profile:', profileError);
+          toast({
+            variant: 'destructive',
+            title: 'Profile Load Error',
+            description: `Could not load profile: ${profileError.message}`,
+          });
+          setProfile(null);
+        }
+      } else {
+        // Success, userProfile might be null if the query somehow succeeded but returned null 
+        // (though .single() should error before this if no row is found), or it contains the profile data.
+        setProfile(userProfile || null);
+      }
+    } catch (e) {
+      // Catch any other unexpected errors during the fetch process
+      console.error('Unexpected error in fetchProfileForUser:', e);
+      toast({
+        variant: 'destructive',
+        title: 'Application Error',
+        description: 'An unexpected error occurred while trying to load user profile.',
+      });
+      setProfile(null);
+    }
   };
 
 
@@ -92,7 +123,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (_event, currentSession) => {
-        setLoading(true); // Set loading true while auth state changes and profile is fetched
+        setLoading(true); 
         setSession(currentSession);
         const currentUser = currentSession?.user ?? null;
         setUser(currentUser);
@@ -154,8 +185,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             title: 'Account Created', 
             description: 'Please check your email to verify your account before logging in.' 
           });
-          // Optimistically set profile here, actual fetch will happen on auth state change
-          setProfile({
+          setProfile({ // Optimistically set profile
             id: authData.user.id,
             first_name: firstName || null,
             last_name: lastName || null,
@@ -193,19 +223,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         throw signInError;
       }
-      // Profile will be fetched by onAuthStateChange or initial load
       if (data.user) {
-        await fetchProfileForUser(data.user); // Fetch profile immediately after sign-in
+        await fetchProfileForUser(data.user); 
       }
       toast({ title: 'Signed In', description: 'Successfully signed in!' });
       return data.user;
     } catch (err) {
       setError(err as SupabaseAuthError);
-      if ((err as SupabaseAuthError).message !== 'Email not confirmed' && !(err as SupabaseAuthError).message.includes('Invalid login credentials')) {
-         // Error already handled by toast inside the try block or generic toast if desired
-      } else if ((err as SupabaseAuthError).message.includes('Invalid login credentials')) {
-        // This specific message is already handled by toast inside try block
-      }
       return null;
     } finally {
       setLoading(false);
@@ -223,12 +247,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       if (oauthError) throw oauthError;
-      // Profile fetching will be handled by onAuthStateChange
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'Google Sign In Error', description: (err as SupabaseAuthError).message });
-    } finally {
-      // setLoading(false) is handled by onAuthStateChange or initial fetch
     }
   };
 
@@ -243,12 +264,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
       });
       if (oauthError) throw oauthError;
-      // Profile fetching will be handled by onAuthStateChange
     } catch (err) {
       setError(err as SupabaseAuthError);
       toast({ variant: 'destructive', title: 'GitHub Sign In Error', description: (err as SupabaseAuthError).message });
-    } finally {
-      // setLoading(false) is handled by onAuthStateChange or initial fetch
     }
   };
 
@@ -258,9 +276,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
-      setUser(null); // Explicitly set user to null
-      setSession(null); // Explicitly set session to null
-      setProfile(null); // Clear profile on sign out
+      setUser(null); 
+      setSession(null); 
+      setProfile(null); 
       toast({ title: 'Signed Out', description: 'Successfully signed out.' });
     } catch (err) {
       setError(err as SupabaseAuthError);
